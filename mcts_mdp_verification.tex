@@ -1,0 +1,89 @@
+\chapter{MCTS in MDP Verification}
+
+In this chapter three new algorithms for verification of Markov
+decision processes are presented. One called MCTS-BRTDP
+is a fusion of MCTS with BRTDP, the second called Bounded MCTS (BMCTS) is more
+similar to the general MCTS scheme but still maintains bounds. The third one called
+BRTDP-UCB uses the UCB formula to select the next action in BRTDP.
+
+\section{MCTS-BRTDP}
+
+MCTS-BRTDP is a variant of MCTS where the tree policy is the standard
+selection of a node with the maximum UCB value. The default policy is
+BRTDP as described in \autoref{ch_mdp} and the bound updates then continue
+through the tree upwards to its root.
+
+\begin{algorithm}
+\caption{MCTS-BRTDP}
+\label{mcts-brtdp}
+\begin{algorithmic}
+\Function{MCTS-BRTDP}{$s_0$}
+    \State Let $v_0$ be the root of the MCTS tree, with $v_0.state = s_0$.
+    \While{$U(s_0) - L(s_0) > \epsilon$}
+        \State $v_l \gets \Call{TreePolicy}{v_0}$
+        \State $\Delta \gets \Call{BRTDP}{v_l}$
+        \State $\Call{Backup}{v_l, \Delta}$
+    \EndWhile
+    \State \Return Action from $v_0$ to the best node (by some
+    given metric).
+\EndFunction
+
+\Function{TreePolicy}{$s$}
+\Repeat
+\Until{$s \neq s_0$}
+\EndFunction
+
+\Function{Backup}{$s_0, s$}
+\Repeat
+    \State $U(s,a) \coloneqq \sum_{s' \in S} \Delta(s,a)(s')U(s')$
+    \State $L(s,a)\, \coloneqq \sum_{s' \in S} \Delta(s,a)(s')L(s')$
+    \State $s \gets parent(s)$
+\Until{$s \neq s_0$}
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+TODO: Prove PAC.
+
+\section{Bounded MCTS}
+
+BMCTS is an algorithm similar to MCTS-BRTDP but the default policy
+selects the next node (TODO: action?) at random with uniform
+distribution.
+
+TODO: Describe the advantage and disadvantages.
+
+The functions \textsc{TreePolicy} and \textsc{Backup} are implemented in
+the same way as in \autoref{mcts-brtdp}.
+
+\begin{algorithm}
+\caption{BMCTS}
+\label{bmcts}
+\begin{algorithmic}
+\Function{BMCTS}{$s_0$}
+    \State Let $v_0$ be the root of the MCTS tree, with $v_0.state = s_0$.
+    \While{$U(s_0) - L(s_0) > \epsilon$}
+        \State $v_l \gets \Call{TreePolicy}{v_0}$
+        \State $\Delta \gets \Call{DefaultPolicy}{v_l}$
+        \State $\Call{Backup}{v_l, \Delta}$
+    \EndWhile
+    \State \Return Action from $v_0$ to the best node (by some
+    given metric).
+\EndFunction
+
+\Function{DefaultPolicy}{$s$}
+\EndFunction
+
+\end{algorithmic}
+\end{algorithm}
+
+
+TODO: Prove PAC.
+
+
+\section{UCB in BRTDP}
+
+We further present one algorithm which is not based on MCTS but
+incorporates the $UCB$ exploration term into BRTDP. TODO: pseudocode?
+probably not, it is just BRTDP where the action is chosen according to
+UCB, is it PAC? can we prove it?

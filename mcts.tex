@@ -1,0 +1,211 @@
+\chapter{Monte Carlo Tree Search}
+\label{ch_mcts}
+
+Monte Carlo methods\footnote{Not to be confused with
+Monte Carlo algorithms which are precisely defined as the algorithms
+solving the decision problems in classes BPP and RP.} are using random sampling to estimate the correct
+solution to a problem. The first serious use of Monte Carlo methods was
+by Stanislaw Ulam and John von Neumann during their work on the
+Manhattan project, but the technique has since spread into many areas of
+science due to its general applicability.
+
+One of the celebrated Monte Carlo methods
+is the simulated annealing algorithm (so called due to its
+origin in statistical physics) which is an improved version of
+Metropolis algorithm (invented by a Manhattan project scientist
+Nicholas C. Metropolis and others).
+
+This method found its way into game
+theory in 1993 when it was applied to the board game Go
+\parencite{MonteCarloGo}. The approach was later further improved
+\parencite{MonteCarloGoDevel} but the real breakthrough came in 2006
+when Coulom \parencite{Coulom} and Kocsis, Szepesvári \parencite{Kocsis}
+independetly explored the idea of maintaing a tree which would guide the
+search for strategies -- thus discovering Monte Carlo Tree Search.
+This was eventually used in the AlphaGo program
+\parencite{AlphaGo}, the first
+computer program to beat professional human players.
+
+Monte Carlo Tree Search (MCTS) is, in short, a
+heuristic search algorithm for finding good strategies in complex
+decision processes by combining standard approaches of artificial
+intelligence and computational statistics: tree search and sampling.
+
+In this chapter the general MCTS scheme is defined and a concrete instance
+called UCT is shown together with its application to maximizing rewards
+in MDPs and games. The chapter is based mostly on a thorough MCTS survey
+paper \parencite{mcts_survey}.
+
+Since the research into MCTS focuses mainly on using MCTS for reward maximization
+we also focus on that in this chapter unlike the rest of the thesis.
+
+TODO: define MDP with rewards here (but mention it in the mdp chapter
+too, just briefly, informaly)
+
+\section{General MCTS Scheme}
+
+MCTS iteratively builds a tree which approximates possible resulting
+rewards of strategies in the decision process. In each iteration the
+tree guides the search to balance between exploitation of known good
+strategies and exploration of new strategies. When the search leaves the
+tree it proceeds at random and upon terminating it adds a new leaf to
+the tree and updates its ancestors with the result. This is summarized
+in \autoref{mcts}.
+
+
+\begin{algorithm}
+\caption{General Monte Carlo Tree Search method}
+\label{mcts}
+\begin{algorithmic}
+\Function{MCTS}{$s_0$}
+    \State Let $v_0$ be the root of the MCTS tree, with $v_0.state = s_0$.
+    \While{within computational budget}
+        \State $v_l \gets \Call{TreePolicy}{v_0}$
+        \State $\Delta \gets \Call{DefaultPolicy}{v_l}$
+        \State $\Call{Backup}{v_l, \Delta}$
+    \EndWhile
+    \State \Return Action from $v_0$ to the best node (by some
+    given metric).
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\section{Upper Confidence Bound for Trees}
+
+The most common implementation of the general scheme is {\em Upper
+Confidence Bound for Trees} (UCT) which utilizes formula \ref{UCB}.
+In this formula $\overline{X}_i$ represents the expected outcome
+from node $i$, $n$ is the number of visits to all nodes, $n_i$ is the
+number of visits to node $i$. $C$ is an arbitrary constant.
+
+\begin{equation}
+\label{UCB}
+UCT_i = \overline{X}_i + C \sqrt{ \frac{2 \ln n}{n_i} }
+\end{equation}
+
+Selecting a tree node which maximizes this value makes the algorithm balance
+between exploitation of known good strategies and exploration of new.
+Constant $C$ instructs the algorithm how much weight to give to
+exploration. TODO: Mention the result of Kocsis and Sepe... which proves
+$1/\sqrt(2)$ to be optimal under some circumstances.
+
+\autoref{uct} is implementation of the general \autoref{mcts}. As UCT is
+the most common type of MCTS algorithm, the terms are often used
+interchangeably in literature.
+
+TODO: Define precisely the problem uct is solving (it should be
+maximization of rewards in MDP).
+
+\begin{algorithm}
+    \caption{Upper Confidence Bound for Trees}
+\label{uct}
+\begin{algorithmic}
+\Function{UCT}{$s_0$}
+    \State TODO
+    \State Let $v_0$ be the root of the MCTS tree, with $v_0.state = s_0$.
+    \While{within computational budget}
+        \State $v_l \gets \Call{TreePolicy}{v_0}$
+        \State $\Delta \gets \Call{DefaultPolicy}{v_l}$
+        \State $\Call{Backup}{v_l, \Delta}$
+    \EndWhile
+    \State \Return Action from $v_0$ to the best node (by some
+    given metric).
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\section{Solving Games}
+
+In this section a brief introduction to game theory is given, starting
+with a definition of games, strategies and solutions to games. We
+proceed by presenting the standard {\em minimax} algorithm, then showing
+how MCTS can be used to solve games and how it compares with minimax.
+Lastly applications to concrete games are shown, most notably the game
+of Go which has been a fruitful subject of research on MCTS.
+
+Our definition of a game is that of a {\em perfect-information
+extensive-form game}. The perfect-information in games corresponds to
+full observability in MDP.  The reader can notice other similarities
+with MDPs as well, for example games have states, final states, actions
+and enabled actions, as well as rewards. On the other hand the
+transition function is deterministic.
+
+\begin{definition}
+    A {\em game} is a tuple $G = (N, S, F, A, E, \Delta, \rho, u)$,
+    where $N \subseteq \mathbb{N}$ is a finite set of players,
+    $S$ is a set of states,
+    $F \subseteq S$ is a set of final (terminal) states,
+    $A$ is the set of actions,
+    $E : S \to \mathcal{P}^+(A)$ is a function which tells the player
+    which non-empty set of actions can be played in a given state,
+    $\Delta : S \times A \to A$ is the transition function,
+    $\rho : S \to N$ is a function which determines who plays in each
+    state, and finally $u = (u_1,\ldots,u_n)$ is the tuple of
+    utility (reward) functions where each $u_i, i \in N$ is a function
+    $u_i : F \to \mathbb{R}$.
+\end{definition}
+
+TODO: there may be some more conditions I didn't realize in the definitions, check
+ia168
+
+Game starts in a distinguished state $s_0$ and players take turns until
+a terminal state (in $F$) reached. In a turn a player in state $s$ chooses
+action $a$ from $E(s)$ and the action leads to state $\Delta(s,a)$.
+If the state $\Delta(s,a)$ is terminal, then every player $i$ receives
+the reward $u_i(\Delta(s,a))$.
+
+A common choice of the utility function is $+1, 0, -1$ for victory, draw
+and loss, respectively.
+
+\begin{definition}
+    A {\em strategy} of player $i$ in a game $G$ is a function
+    $\pi_i : S \to \distribution{A}$, such that for all $s \in S$ and $a
+    \in A$ it holds that if $\pi_i(s)(a) > 0$ then $a \in E(s)$.
+
+    A {\em strategy profile} is an $N$-tuple with a strategy for each player.
+\end{definition}
+
+We assume the players are rational and thus pick strategies which
+optimize for their goals. A goal may be to maximize the player's reward,
+another goal may be to get a higher score than the opponents.
+
+TODO: example to show a difference between the goals (ideally a game
+where both goals can be achieved but if Alice beats Bob she loses 5 gold
+if she optimized for reward but if she optimizes for reward she has
+lower profit than Bob).
+
+A famous class of strategic profiles are the so called Nash equilbria.
+A strategic profile is a Nash equilibrium, if no player can get a higher
+reward by switching a strategy. (TODO: some history)
+
+\subsection{Zero-sum games and minimax}
+
+In zero-sum games one player wins at the cost of the other losing.
+There are plenty of examples of such games, most notable are Chess and Go.
+
+\begin{definition}
+    A game is {\em zero-sum} if the rewards always sum to zero.
+    That is $\sum_{i \in N} u_i(s) = 0$ for all $s \in F$.
+\end{definition}
+
+TODO: Explain minimax alg. (mention it was John von Neumann, again)
+
+TODO: Explain minimax solutions are precisely Nash equilibria on zero sum
+games.
+
+\subsection{Solving with MCTS}
+
+TODO: How to modify UCT to solve games (negamax backup).
+
+TODO: When to choose minimax and when MCTS.
+Mention (or prove?) that mcts converges to minimax.
+
+TODO: Show an example.
+
+\subsection{Computer Go}
+
+TODO: How is MCTS used in some simple Go program.
+
+TODO: The gist of AlphaGo.
+
+TODO: other games?

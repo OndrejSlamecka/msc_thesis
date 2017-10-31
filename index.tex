@@ -1,0 +1,117 @@
+\documentclass[
+  digital, %% This option enables the default options for the
+           %% digital version of a document. Replace with `printed`
+           %% to enable the default options for the printed version
+           %% of a document.
+  table,   %% Causes the coloring of tables. Replace with `notable`
+           %% to restore plain tables.
+  lof,     %% Prints the List of Figures. Replace with `nolof` to
+           %% hide the List of Figures.
+  lot,     %% Prints the List of Tables. Replace with `nolot` to
+           %% hide the List of Tables.
+  %% More options are listed in the user guide at
+  %% <http://mirrors.ctan.org/macros/latex/contrib/fithesis/guide/mu/fi.pdf>.
+]{fithesis3}
+%% The following section sets up the locales used in the thesis.
+\usepackage[resetfonts]{cmap} %% We need to load the T2A font encoding
+\usepackage[T1,T2A]{fontenc}  %% to use the Cyrillic fonts with Russian texts.
+\usepackage[
+  main=english,  %% By using `czech` or `slovak` as the main locale
+                 %% instead of `english`, you can typeset the thesis
+                 %% in either Czech or Slovak, respectively.
+  english, czech %% The additional keys allow
+]{babel}         %% foreign texts to be typeset as follows:
+%%
+%%   \begin{otherlanguage}{german}  ... \end{otherlanguage}
+%%   \begin{otherlanguage}{russian} ... \end{otherlanguage}
+%%   \begin{otherlanguage}{czech}   ... \end{otherlanguage}
+%%   \begin{otherlanguage}{slovak}  ... \end{otherlanguage}
+%%
+%% For non-Latin scripts, it may be necessary to load additional
+%% fonts:
+% \usepackage{paratype}
+% \def\textrussian#1{{\usefont{T2A}{PTSerif-TLF}{m}{rm}#1}}
+%%
+%% The following section sets up the metadata of the thesis.
+\thesissetup{
+    date          = \the\year/\the\month/\the\day,
+    university    = mu,
+    faculty       = fi,
+    type          = mgr,
+    author        = Ondřej Slámečka,
+    gender        = m,
+    advisor       = {doc. RNDr. Tomáš Brázdil, Ph.D.},
+    title         = {Monte Carlo Tree Search in Verification
+of Markov Decision Processes},
+    TeXtitle      = {Monte Carlo Tree Search \\ in Verification
+of Markov Decision Processes},
+    keywords      = {Monte Carlo Tree Search, Markov Decision Process,
+    Verification, Reachability, Learning Algorithm, Heuristic},
+    TeXkeywords   = {Monte Carlo Tree Search, Markov Decision Process,
+    Verification, Reachability, Learning Algorithm, Heuristic},
+    abstract      = {This is the abstract of my thesis, which can
+
+                     span multiple paragraphs.},
+    thanks        = {These are the acknowledgements for my thesis, which can
+
+                     span multiple paragraphs.},
+    bib           = {thesis.bib}
+}
+\usepackage{makeidx}      %% The `makeidx` package contains
+\makeindex                %% helper commands for index typesetting.
+%% These additional packages are used within the document:
+\usepackage{paralist} %% Compact list environments
+\usepackage{amsmath}  %% Mathematics
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\usepackage{mathtools}
+\usepackage{pdflscape} %% alternatively pdflscape if this doesnt work
+\usepackage{tikz}
+\usepackage{url}      %% Hyperlinks
+\usepackage{listings} %% Source code highlighting
+\lstset{
+  basicstyle      = \ttfamily,%
+  identifierstyle = \color{black},%
+  keywordstyle    = \color{blue},%
+  keywordstyle    = {[2]\color{cyan}},%
+  keywordstyle    = {[3]\color{olive}},%
+  stringstyle     = \color{teal},%
+  commentstyle    = \itshape\color{magenta}}
+\usepackage{floatrow} %% Putting captions above tables
+\floatsetup[table]{capposition=top}
+
+%% Algortihms
+\usepackage{algorithm} % this does the figure environment
+\usepackage{algpseudocode} % algorithmicx, this does the actual algs
+
+%% Theorems
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{example}{Example}
+
+%% Commands
+\newcommand{\powerset}[1]{\mathcal{P}(#1)}
+\newcommand{\distribution}[1]{\mathcal{D}(#1)}
+\DeclareMathOperator{\last}{last}
+
+%% Some useful commands for pseudocode
+\algdef{SE}[DOWHILE]{Do}{doWhile}{\algorithmicdo}[1]{\algorithmicwhile\ #1}%
+\algnewcommand\algorithmicforeach{\textbf{for each}}
+\algdef{S}[FOR]{ForEach}[1]{\algorithmicforeach\ #1\ \algorithmicdo}
+
+%% TikZ, initial states and such
+\usetikzlibrary{arrows,automata}
+
+\begin{document}
+
+
+\include{introduction}
+\include{mdp}
+\include{mcts}
+\include{mcts_mdp_verification}
+\include{evaluation}
+\include{conclusion}
+%\printbibliography[heading=bibintoc] %% Print the bibliography.
+
+
+\end{document}
