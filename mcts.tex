@@ -23,7 +23,7 @@ when Coulom \parencite{Coulom} and Kocsis, Szepesvári \parencite{Kocsis}
 independetly explored the idea of maintaing a tree which would guide the
 search for strategies -- thus discovering Monte Carlo Tree Search.
 This was eventually used in the AlphaGo program
-\parencite{AlphaGo}, the first
+\parencite{alphago}, the first
 computer program to beat professional human players.
 
 Monte Carlo Tree Search (MCTS) is, in short, a
@@ -117,11 +117,15 @@ maximization of rewards in MDP).
 \section{Solving Games}
 
 In this section a brief introduction to game theory is given, starting
-with a definition of games, strategies and solutions to games. We
+with definitions of games, strategies and solutions to games. We
 proceed by presenting the standard {\em minimax} algorithm, then showing
 how MCTS can be used to solve games and how it compares with minimax.
-Lastly applications to concrete games are shown, most notably the game
-of Go which has been a fruitful subject of research on MCTS.
+Lastly we show how MCTS is used to play the game of Go, which has been a
+fruitful subject of research.
+Observing where it performs good and where it does not provides insight
+into MCTS and is a useful starting point for understanding the results
+of evaluation in \autoref{ch_evaluation}.
+
 
 Our definition of a game is that of a {\em perfect-information
 extensive-form game}. The perfect-information in games corresponds to
@@ -132,17 +136,21 @@ transition function is deterministic.
 
 \begin{definition}
     A {\em game} is a tuple $G = (N, S, F, A, E, \Delta, \rho, u)$,
-    where $N \subseteq \mathbb{N}$ is a finite set of players,
-    $S$ is a set of states,
-    $F \subseteq S$ is a set of final (terminal) states,
-    $A$ is the set of actions,
-    $E : S \to \mathcal{P}^+(A)$ is a function which tells the player
-    which non-empty set of actions can be played in a given state,
-    $\Delta : S \times A \to A$ is the transition function,
-    $\rho : S \to N$ is a function which determines who plays in each
-    state, and finally $u = (u_1,\ldots,u_n)$ is the tuple of
-    utility (reward) functions where each $u_i, i \in N$ is a function
-    $u_i : F \to \mathbb{R}$.
+    where
+    \begin{itemize}
+        \item $N \subseteq \mathbb{N}$ is a finite set of players,
+        \item $S$ is a set of states,
+        \item $F \subseteq S$ is a set of final (terminal) states,
+        \item $A$ is the set of actions,
+        \item $E : S \to \mathcal{P}^+(A)$ is a function which tells the player
+            which non-empty set of actions can be played in a given state,
+        \item $\Delta : S \times A \to A$ is the transition function,
+        \item $\rho : S \to N$ is a function which determines who plays in each state,
+            and finally
+        \item $u = (u_1,\ldots,u_n)$ is the tuple of
+            utility (reward) functions where each $u_i, i \in N$ is a function
+            $u_i : F \to \mathbb{R}$.
+    \end{itemize}
 \end{definition}
 
 TODO: there may be some more conditions I didn't realize in the definitions, check
@@ -157,6 +165,9 @@ the reward $u_i(\Delta(s,a))$.
 A common choice of the utility function is $+1, 0, -1$ for victory, draw
 and loss, respectively.
 
+\begin{example}
+\end{example}
+
 \begin{definition}
     A {\em strategy} of player $i$ in a game $G$ is a function
     $\pi_i : S \to \distribution{A}$, such that for all $s \in S$ and $a
@@ -169,43 +180,154 @@ We assume the players are rational and thus pick strategies which
 optimize for their goals. A goal may be to maximize the player's reward,
 another goal may be to get a higher score than the opponents.
 
-TODO: example to show a difference between the goals (ideally a game
-where both goals can be achieved but if Alice beats Bob she loses 5 gold
-if she optimized for reward but if she optimizes for reward she has
-lower profit than Bob).
+\begin{example}
+    \label{example_goals}
+    In the game below let Alice be player 1 and Bob player 2.
+    There is a single turn made by Alice in the black node.
+If her goal is to beat Bob she will pick the left node.
+If her goal is to maximize her profit she will choose the right one.
 
-A famous class of strategic profiles are the so called Nash equilbria.
-A strategic profile is a Nash equilibrium, if no player can get a higher
-reward by switching a strategy. (TODO: some history)
+    \begin{center}
+\begin{tikzpicture}
+\tikzset{
+solid node/.style={circle,draw,inner sep=1.5,fill=black},
+hollow node/.style={circle,draw,inner sep=1.5}
+}
+
+\node(0)[solid node]{}
+    child{node[hollow node,label=below:{$(2,1)$}]{}}
+    child{node[hollow node,label=below:{(5,10)}]{}};
+\end{tikzpicture}
+\end{center}
+\end{example}
+
+For simplicity we restrict
+ourselves to two player games in the following text unless otherwise
+noted.
+
 
 \subsection{Zero-sum games and minimax}
 
 In zero-sum games one player wins at the cost of the other losing.
-There are plenty of examples of such games, most notable are Chess and Go.
+There are plenty of examples of such games, e.g. Chess, Go, which makes
+them an important subject of study.
 
 \begin{definition}
-    A game is {\em zero-sum} if the rewards always sum to zero.
-    That is $\sum_{i \in N} u_i(s) = 0$ for all $s \in F$.
+    Let $G = (N, S, F, A, E, \Delta, \rho, u)$ be a game.
+    $G$ is said to be {\em zero-sum} if the rewards always sum to zero,
+    that is $\sum_{i \in N} u_i(s) = 0$ for all $s \in F$.
 \end{definition}
 
-TODO: Explain minimax alg. (mention it was John von Neumann, again)
+An important type of strategy is {\em minimax}. A player playing this
+strategy is minimizing their potential maximum loss\footnote{Some might
+prefer calling it {\em maximin} for maximization of the minimum reward,
+which is equivalent to the first definition in zero-sum games.}. If both players play a
+minimax strategy, the strategy profile is a Nash
+equilibrium\footnote{
+A strategic profile is a Nash equilibrium, if no player can get a higher
+reward by switching a strategy.
+    }$^,$\footnote{The {\em minimax theorem} was proven by John
+von Neumann.}.
 
-TODO: Explain minimax solutions are precisely Nash equilibria on zero sum
-games.
+The {\em minimax algorithm} computes the value of each leaf in a game
+tree assuming the opponent tries to harms the player as much as
+possible. The algorithm then tells the player to play the action going
+into the subtree with the highest value node.
+
+\autoref{negamax}, the {\em negamax algorithm}, is a minor simplification
+of minimax, equivalent to minimax in zero-sum games.
+
+\begin{algorithm}
+\caption{Negamax}
+\label{negamax}
+\begin{algorithmic}
+\Function{negamax}{$node$}
+    \If{$node$ is a leaf}
+        \State \Return hmm.. how to write it
+    \EndIf
+    \State \Return $\max \{ - \Call{negamax}{child}
+        \mid child \text{ of } node \}$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+TODO: example execution
+
+For larger games a variation called {\em minimax search} is used, which
+performs the computation only to a limited depth, and then uses
+a heurisic to evaluate the last node it processes (unless it is a leaf).
 
 \subsection{Solving with MCTS}
 
-TODO: How to modify UCT to solve games (negamax backup).
+From the negamax algorithm in the previous section there is an easy step
+to solving games with MCTS. \autoref{mcts_negamax} is an
+implementation of the Backup function in UCT for finding a good
+action a player should take in a zero-sum game.
 
-TODO: When to choose minimax and when MCTS.
-Mention (or prove?) that mcts converges to minimax.
+\begin{algorithm}
+\caption{Negamax MCTS Backup}
+\label{mcts_negamax}
+\begin{algorithmic}
+\Function{backup}{$v, \Delta$}
+    \While{$v$ is not $null$}
+        \State $N(v) \gets N(v) + 1$
+        \State $Q(v) \gets Q(v) + \Delta$
+        \State $\Delta \gets - \Delta$
+        \State $v \gets $ parent of $v$
+    \EndWhile
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
 
-TODO: Show an example.
+TODO: Example execution?
+
+An important theoretical result is
+that MCTS converges to minimax \parencite{Kocsis},
+so eventually, after a lot of MCTS iterations, there is a negligible
+difference between the results of the two methods and they pick the same
+next move. However in
+applications we want to know when to use minimax (\autoref{negamax}) and
+when to use UCT (\autoref{uct} with \autoref{mcts_negamax}) without
+iterating UCT for a long time.
+
+While UCT achieved success in many games \parencite{mcts_survey},
+for example in chess it does not perform well. The reason being that chess
+games contain a lot of trap states (states from which the opponent
+has a guaranteed victory) which are reachable just in a few turns. UCT
+then spends a lot of time exploring these fruitless parts of the search
+tree \parencite{mcts_vs_chess}.
 
 \subsection{Computer Go}
 
+Go is an example of a game where MCTS has proven to be a good choice,
+most recently with the AlphaGo program \parencite{alphago}.
+We shortly introduce Go and how MCTS is used to
+play it.
+
+The basic rules of Go are simple. The
+standard board is a $9\times9$ (for beginners) or $19 \times 19$ grid.
+Two players, black and white, alternate in their moves, each
+placing a single stone of their color on an intersection of lines.
+By surrounding the stones of the opponent a player captures all the
+surrounded stones. The game ends when both players agree to end and the
+winner is the player with greater sum of controlled territory and
+captured stones.
+The rules are well explained in detail at
+\href{http://playgo.to/iwtg/en/}{http://playgo.to/iwtg/en/}.
+
+
 TODO: How is MCTS used in some simple Go program.
+Link to AlphaGo for advanced technique.
 
-TODO: The gist of AlphaGo.
+A Go player can observe that unlike in Chess there is seldom a quick way
+to lose, as a loss of a small part of territory may be reversed, however
+losing an important piece is hardly reversible. It seems plausible this
+generalizes to territory versus piece based games.
 
-TODO: other games?
+We end our detour to games with Arimaa, a game specifically designed in
+2002 to be easy for humans but hard for computers, for example by
+allowing more moves per turn. Eventually Arimaa players lost to a
+program in 2015 \parencite{arimaa}. The program uses techniques similar
+to chess programs like alpha-beta pruning and on top of that employs
+heuristics inspired by the best human players. See \parencite{jakl} for
+MCTS related insights into Arimaa.
