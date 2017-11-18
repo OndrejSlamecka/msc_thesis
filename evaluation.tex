@@ -1,4 +1,4 @@
-\chapter{Evalution}
+\chapter{Evaluation}
 \label{ch_evaluation}
 
 This chapter explains the basics of working with PRISM model checker,
@@ -7,7 +7,7 @@ how do they compare to other methods on standard models.
 (TODO: In the last section we make some observations relating the model
 structure with the performance of the methods).
 
-\section{PRISM Model Checker}
+\section{PRISM, Probabilistic Model Checker}
 
 PRISM \parencite{prism}
 ({\em probabilistic model checker}) is a program/framework
@@ -193,6 +193,8 @@ The description of the models in the PRISM language can be found inside
 \verb|tests/reachability/models| in the source codes attached to this
 thesis.
 
+TODO: Do only two or three which we will discuss later.
+
 \subsection*{Zero-configuration networking}
 
 {\em Zeroconf} model corresponds to a set of computers establishing a
@@ -246,11 +248,22 @@ N=4;K=4    &                0.162 &               15.321 \\
 \end{tabular}
 \end{landscape}
 
+\section{Behaviour on Small Models}
+
+Describe how do MCTS based methods solve few small models like bin tree
+
 \section{Model Structure and MCTS Performance}
 
 We discuss what are the possible reasons MCTS performs well on some
 models and worse on others. (See e.g. On Adversarial Search Spaces and
 Sampling-Based Planning for a similar comparison between MCTS on Chess
 and Go).
+
+From the Chess and Go comparison it would seem that MCTS based methods would
+not perform well in verification as there are usually many dead ends.
+However by tuning the parameters and trying variants of the algorithms
+we have achieved better results on several models than other known methods.
+
+TODO :-/
 
 can we extrapolate where will each method do well from small instances of the models?

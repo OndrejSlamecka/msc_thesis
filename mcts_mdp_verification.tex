@@ -1,10 +1,38 @@
 \chapter{MCTS in MDP Verification}
 
 In this chapter three new algorithms for verification of Markov
-decision processes are presented. One called MCTS-BRTDP
-is a fusion of MCTS with BRTDP, the second called Bounded MCTS (BMCTS) is more
-similar to the general MCTS scheme but still maintains bounds. The third one called
-BRTDP-UCB uses the UCB formula to select the next action in BRTDP.
+decision processes are presented. One called
+called Bounded MCTS (BMCTS) follows closely the general MCTS scheme
+but the updates maintain lower and upper bounds. The second called
+MCTS-BRTDP is a fusion of MCTS, where each rollout (TODO: make use of
+this word consistent) is a single iteration of BRTDP.
+The third one called is called BRTDP-UCB and uses the UCB formula to
+select the next action in BRTDP.
+
+These algorithms can be altered by changing the tree node selection
+heuristic. We suggest and evaluate two formulas, UCB and VCB. Here $U_i$
+is the known upper bound (of the sought probability) in the state
+corresponding to the tree node $i$, $n_i$ is the number of visits of the
+node (TODO: not state?) and $n$ is the number of iterations (visits of
+the root node).
+\begin{equation*}
+    UCB_i = U_i + C \sqrt{ \frac{2 \ln n}{n_i} }
+\end{equation*}
+
+In the VCB (Victory Confidence Bound), $v_i$ is the number of times a
+target state has been hit when rolling out from state $i$ or its child.
+TODO: However experiments show its performance is similar to UCB.
+\[
+    VCB_i = \frac{v_i}{n_i} + C \sqrt{ \frac{2 \ln n}{n_i} }
+\]
+
+Furthermore we experimented with a formula which would utilize our
+confidence in the learned upper bound but experiments show its
+performance is very bad (TODO: check this is the case on more models).
+\[
+    CCB_i = U_i (1 - (U_i - L_i)) + C \sqrt{ \frac{2 \ln n}{n_i} }
+\]
+
 
 \section{MCTS-BRTDP}
 
@@ -43,7 +71,7 @@ through the tree upwards to its root.
 \end{algorithmic}
 \end{algorithm}
 
-TODO: Prove PAC.
+TODO: Prove AC.
 
 \section{Bounded MCTS}
 
@@ -78,7 +106,7 @@ the same way as in \autoref{mcts-brtdp}.
 \end{algorithm}
 
 
-TODO: Prove PAC.
+TODO: Prove AC.
 
 
 \section{UCB in BRTDP}
@@ -86,4 +114,4 @@ TODO: Prove PAC.
 We further present one algorithm which is not based on MCTS but
 incorporates the $UCB$ exploration term into BRTDP. TODO: pseudocode?
 probably not, it is just BRTDP where the action is chosen according to
-UCB, is it PAC? can we prove it?
+UCB, is it AC? can we prove it?

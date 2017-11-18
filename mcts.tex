@@ -301,8 +301,8 @@ tree \parencite{mcts_vs_chess}.
 
 Go is an example of a game where MCTS has proven to be a good choice,
 most recently with the AlphaGo program \parencite{alphago}.
-We shortly introduce Go and how MCTS is used to
-play it.
+We shortly introduce Go and compare it with chess where MCTS did not
+achieve success.
 
 The basic rules of Go are simple. The
 standard board is a $9\times9$ (for beginners) or $19 \times 19$ grid.
@@ -315,14 +315,15 @@ captured stones.
 The rules are well explained in detail at
 \href{http://playgo.to/iwtg/en/}{http://playgo.to/iwtg/en/}.
 
-
-TODO: How is MCTS used in some simple Go program.
-Link to AlphaGo for advanced technique.
-
 A Go player can observe that unlike in Chess there is seldom a quick way
 to lose, as a loss of a small part of territory may be reversed, however
-losing an important piece is hardly reversible. It seems plausible this
-generalizes to territory versus piece based games.
+losing an important piece is hardly reversible.
+This gives us an important example of games where MCTS performs well (in
+Go it is worth exploring a plethora of moves) and where it does not (in
+Chess large parts of the game tree may be dead end) TODO: cite the
+article.
+It seems plausible this
+generalizes well to territory versus piece based games.
 
 We end our detour to games with Arimaa, a game specifically designed in
 2002 to be easy for humans but hard for computers, for example by

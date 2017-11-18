@@ -13,8 +13,8 @@
   %% <http://mirrors.ctan.org/macros/latex/contrib/fithesis/guide/mu/fi.pdf>.
 ]{fithesis3}
 %% The following section sets up the locales used in the thesis.
-\usepackage[resetfonts]{cmap} %% We need to load the T2A font encoding
-\usepackage[T1,T2A]{fontenc}  %% to use the Cyrillic fonts with Russian texts.
+%\usepackage[resetfonts]{cmap} %% We need to load the T2A font encoding
+\usepackage[T1]{fontenc}  %% to use the Cyrillic fonts with Russian texts.
 \usepackage[
   main=english,  %% By using `czech` or `slovak` as the main locale
                  %% instead of `english`, you can typeset the thesis
@@ -49,9 +49,18 @@ of Markov Decision Processes},
     Verification, Reachability, Learning Algorithm, Heuristic},
     TeXkeywords   = {Monte Carlo Tree Search, Markov Decision Process,
     Verification, Reachability, Learning Algorithm, Heuristic},
-    abstract      = {This is the abstract of my thesis, which can
-
-                     span multiple paragraphs.},
+    abstract      = {We explore how Monte Carlo tree search type algorithms can be
+        used for verifictation of Markov decision processes (with
+        complete information) by balancing between exhaustive search
+        and heuristic search (which might spend a long time in local
+        minima).
+        Several new algorithms either based on UCT (most successful MCTS
+        algorithm) or its variations are proposed and
+        experimentally evaluated on standard models. Our results show
+        MCTS type algorithms perform as well as BRTDP on most standard
+        models but are faster on models where BRTDP underestimates
+        certain paths to goals.
+        },
     thanks        = {These are the acknowledgements for my thesis, which can
 
                      span multiple paragraphs.},

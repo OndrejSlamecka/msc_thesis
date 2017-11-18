@@ -1,21 +1,24 @@
 \chapter{Markov Decision Processes}
 \label{ch_mdp}
 
-We start by introducing Markov chains, a simpler type of probabilistic
-processes which does not have non-determinism,
+We start by introducing Markov chains, a simpler type of
+probabilistic processes which does not offer choices to be made,
 then continue to generalize to Markov Decision Processes.
 We then overview known approaches to {\em verification} (checking if a
 given MDP satisfies a given property) with special focus on Bounded
 Real-Time Dynamic Programming which will be used in later chapters.
 
 It is assumed the reader is familiar with basic notions of probability
-theory. We use $P(E)$ to denote the probability of event $E$,
+theory, namely probability function, distribution and random variable.
+We use $P(E)$ to denote the probability of an event $E$ and
+$\distribution{S}$ to denote the set of probability distributions on a set $S$.
 
 As we work with probabilities over uncountable sets the reader should be
 familiar with measure-theoretic treatment of probability (or at least
-ready to trust their intuition built with basic probability).
-Defining the terms here would significantly extend the text while
-providing little value so we instead refer the reader to TODO.
+ready to believe their intuition built with basic probability works here).
+Developing the theory here would significantly extend the text while
+providing little value so we instead refer the reader to
+\parencite{probability}.
 
 \section{Markov Chains}
 
@@ -25,12 +28,30 @@ probabilistic models. In a Markov chain there are no decisions, only
 probabilities of transition.
 
 \begin{definition}
-    Markov chain.
+    Let $S$ be a set of states.
+    A sequence of random variables $(X_i)^{\infty}_{i=0}$
+    is called a {\em discrete-time Markov chain},
+    if the probability of moving to a state is given only by the
+    current state, that is
+    $P(X_{k+1} = s_{k+1} \mid X_k = s_k) =
+    P(X_{k+1} = s_{k+1} \mid X_k = s_k, X_{k-1} = s_{k-1},
+    \ldots, X_{1} = s_{1})$ for every $s_j \in S, 1 \leq j \leq k + 1$,
+    if the conditional probabilities are defined.
 \end{definition}
 
+In many applications it is natural to have an initial state
+$s$ ($X_1 = s$) and a chain can
+then be drawn as a graph with probabilistic transitions. Note
+that the weights of the outgoing edges from a node sum to one, as the
+transition probabilities form a distribution on the set of states (for
+simplicity we do not draw the transitions with zero probability).
+
 \begin{example}
-    Let $s_0$ be the starting node (TODO: compute some
-    probabilities).
+    \label{ex_mc}
+    In this example $s_0$ is the initial state,
+    $P(X_2 = s_1 \mid X_1 = s_0) = 0.5$,
+    $P(X_2 = s_2 \mid X_1 = s_0) = 0.25$,
+    $P(X_2 = s_0 \mid X_1 = s_0) = 0.25$.
 
 \hfill \break
 \centering
@@ -38,26 +59,63 @@ probabilities of transition.
     \tikzstyle{state}=[thick,draw=black,circle]
     \tikzstyle{decision}=[draw,shape=circle,fill=black]
 
-    \node[state] at (0,0) (s0) {$s_0$};
-    \node[state] at (2,0) (s0b) {};
-    \node[state] at (4,0) (s1) {$s_1$};
-    \node[state] at (4,-1) (s2) {$s_2$};
+    %\node[state] at (0,0) (s0) {$s_0$};
+    %\node[state] at (2,0) (s0b) {};
+    %\node[state] at (4,0) (s1) {$s_1$};
+    %\node[state] at (4,-1) (s2) {$s_2$};
 
-    \draw (s0) edge [bend left, ->] node [midway, above] {$1$} (s0b);
-    \draw[->] (s0b) -- (s1) node [midway, above] {0.5};
-    \draw (s0b) edge [bend left, ->] node [midway, below] {0.25} (s0);
-    \draw[->] (s0b) -- (s2) node [midway, below left] {0.25};
+    %\draw (s0) edge [bend left, ->] node [midway, above] {} (s0b);
+    %\draw[->] (s0b) -- (s1) node [midway, above] {0.5};
+    %\draw (s0b) edge [bend left, ->] node [midway, below] {0.25} (s0);
+    %\draw[->] (s0b) -- (s2) node [midway, below left] {0.25};
+    \node[state] at (0,0) (s0) {$s_0$};
+    \node[state] at (3,0) (s1) {$s_1$};
+    \node[state] at (3,-1) (s2) {$s_2$};
+
+    \draw[->] (s0) -- (s1) node [midway, above] {0.5};
+    \draw (s0) edge [->, loop below] node [midway, below] {0.25} (s0);
+    \draw[->] (s0) -- (s2) node [midway, below left] {0.25};
 \end{tikzpicture}
 \end{example}
 
-TODO: Recommend some interesting markov chain literature.
+\begin{example} The Drunkard's Walk is a well known example of a Markov
+    chain. One can imagine a drunk person starting in the middle of a road
+    (state $s_0$) and then moving randomly left or right. How many times
+    will the drunk visit the middle of the road? How many steps will it
+    take the drunk on average to reach a ditch ($s_{-2}, s_2$)?
+
+\hfill \break
+\centering
+\begin{tikzpicture}
+    \tikzstyle{state}=[thick,draw=black,circle, minimum size=1.2cm]
+    \tikzstyle{decision}=[draw,shape=circle,fill=black]
+
+    \node[state] at (-5,0) (sm2) {$s_{-2}$};
+    \node[state] at (-2.5,0) (sm1) {$s_{-1}$};
+    \node[state] at (0,0) (s0) {$s_0$};
+    \node[state] at (2.5,0) (s1) {$s_1$};
+    \node[state] at (5,0) (s2) {$s_2$};
+
+    \draw (sm2) edge [->, loop below] node [midway, below] {1} (sm2);
+    \draw (sm1) edge [->, bend right] node [midway, below] {0.5} (sm2);
+
+    \draw (s0) edge [->, bend right] node [midway, above] {0.5} (sm1);
+    \draw (sm1) edge [->, bend right] node [midway, below] {0.5} (s0);
+
+    \draw (s0) edge [->, bend right] node [midway, below] {0.5} (s1);
+    \draw (s1) edge [->, bend right] node [midway, above] {0.5} (s0);
+
+    \draw (s1) edge [->, bend right] node [midway, below] {0.5} (s2);
+    \draw (s2) edge [->, loop below] node [midway, below] {1} (s2);
+\end{tikzpicture}
+\end{example}
 
 \section{Markov Decision Processes}
 
-Suppose a system similar to Markov chains.
-If there are points when an actor interacting with the system can make
-choices which affect the behaviour of the system it is called a Markov
-Decision Process.
+Markov decison processes are similar to Markov chains, except now an
+actor interacting with the process can in each state pick an action
+and the next state is chosen according to a distribution on states
+corresponding to this action.
 
 \begin{definition}
 A {\em Markov Decision Process} is a tuple $(S, A, E, \Delta)$, where
@@ -71,19 +129,20 @@ and a state.
 
 It is assumed without loss of generality that for all $s \neq s'$ it
 holds that $E(s) \cap E(s') = \emptyset$. If this didn't hold the
-actions could be just renamed.
+actions could just be renamed.
 \end{definition}
 
-\begin{example} The MDP $(\{s_0, s_1, s_2\}, \{a\}, E, \Delta)$,
+\begin{example}
+    \label{ex_mdp}
+    The MDP $(\{s_0, s_1, s_2\}, \{a\}, E, \Delta)$,
     where
     $E(s_0) = \{a,b\}$, $E(s_1) = E(s_2) = \emptyset$,
     and $\Delta(s_0, a) = \{(s_1, 1)\}$,
     $\Delta(s_0, b) = \{(s_1, 0.5),$ $(s_2,0.25), (s_0,0.25)\}$
     is depicted below.
-
-    The smaller black dots mark points of random transition. If an
-    action leads to a state with probability one the random transition
-    dot is omitted in the picture.
+    The edges labeled with letters denote the available actions
+    and lead to smaller black dots, which mark the point of random
+    choice of the successor state.
 
     The actor making decisions should choose action $a$ if
     they want to get to $s_1$, or (possibly repeatedly) choose $b$ if
@@ -125,10 +184,9 @@ actions could be just renamed.
 \end{definition}
 
 The following definition introduces what is commonly called strategy,
-policy, scheduler or adversary. It is the decision maker in the MDP which
-looks at the path traversed so far and assigns each action $a$
-in the last (current) state the probability of $a$ being chosen.
-
+policy, scheduler, controller or adversary. It is the decision maker in
+the MDP which looks at the path traversed so far and assigns each action
+$a$ in the last (current) state the probability of $a$ being chosen.
 
 \begin{definition}[Strategy]
     Let $\mathcal{M} = (S,A,E,\Delta)$ be a Markov decision process.
@@ -141,55 +199,59 @@ in the last (current) state the probability of $a$ being chosen.
 The technical condition at the end ensures that only actions which can
 be chosen have non-zero probability assigned by the strategy.
 
+Importantly the strategies do not have to be that complicated.
+TODO: Mention or prove that there exists an optimal memory free strategy
+(this is in Puterman for reward maximization, does it hold for
+
 What happens once the strategy is fixed? The MDP becomes a Markov chain.
 This can be seen in the examples, e.g. if the strategy is to always
-choose $b$, the MDP from Example 2 becomes the MC from Example 1.
+choose $b$, the MDP from \autoref{ex_mdp} becomes the MC from
+\autoref{ex_mc}.
 
 For very small MDPs this gives the first algorithm for evaluating their
 properties: for every strategy reduce the MDP to a Markov chain and evaluate the
 property using known Markov chain algorithms, then aggregate the
-results.
-
-The idea of this naive method can be significantly improved and instead
+results\footnote{The idea of this naive method can be significantly improved and instead
 of exploring a vast amount of strategies only a small portion of
-reasonably good strategies is explored \parencite{smc} but that
-technique is beyond the scope of this thesis.
-
-TODO: Mention or prove that there exists an optimal memory free strategy
-(this is in Puterman for reward maximization, does it hold for
+reasonably good strategies is explored \parencite{smc}.}.
 
 
-Now we proceed to define {\em end components} -- parts of MDP which
-allow for an infinitely repeated cycle of states and actions in a path.
-These are of particular interest when sampling an MDP (as the sampling
-agent might run in the MDP indefinitely).
+Now we proceed to define an {\em end component} (EC) -- part of MDP which
+allows for an infinitely repeated cycle of states and actions in a path.
+End components are of particular interest when sampling an MDP (as the sampling
+agent might run in an EC indefinitely).
 
 \begin{definition}[End component]
-Let $\mathcal{M} = (S, A, E, \Delta)$ be an MDP. An {\em end component}
-is a pair $()$
-
-
-Maximum end component.
+Let $\mathcal{M} = (S, A, E, \Delta)$ be an MDP,
+let $S' \subseteq S$ and $A' \subseteq \bigcup_{s' \in S'} E(s')$.
+The pair $(S', A')$ is an {\em end component},
+if for every $s \in S', s' \in S, a \in A'$ it holds that
+$\Delta(s,a)(s') > 0 \implies s' \in S'$,
+and if there is a path between every two $s, s' \in S'$
+using only actions in $A'$.
 \end{definition}
+
+TODO: potrebujeme definovat maximal end component? Pokud ano, tak staci
+zminit, ze jako usporadani uvazujeme mnozinove usporadani po slozkach.
 
 \noindent {\bf Observability of MDP.}
 One can distinguish between various levels of knowledge about an MDP,
 usually depending on the source of the model.
 In partially observable MDPs the information about $\Delta$ may not be
 available (but algorithms for solving the reachability
-problem in such MDPs exist too \parencite{atva14}). In this thesis only
-fully observable MDPs are studied.
+problem in such MDPs exist too \parencite{atva14}). This thesis deals
+only with fully observable MDPs.
 
 
 \section{Verification}
 
-{\em Formal verification} is the act of verifying that a given system satisfies
-a given property. The result of a verification is a proof. {\em Model
+{\em Formal verification} is the act of proving that a given system satisfies
+a given property. {\em Model
 checking} is an approach to formal verification which uses a model of
-the system verify the property.
+the system to verify the property.
 
 In our case the systems are modelled as Markov decision processes and
-the properties are maximum probabilities of reaching a state.
+the properties are concerned about maximum probability of reaching a state.
 
 \noindent \textbf{Reachability probability.}
 $P^\sigma_{\mathcal{M},s}(\lozenge F)$
@@ -197,17 +259,16 @@ $P^\sigma_{\mathcal{M},s}(\lozenge F)$
 TODO: Whcih method give guarantees and which do not?
 
 A description of the most common approaches to computing Pr... follows.
-Value Iteration, Strategy Iteration and Interval Iteration are
+Value Iteration and Strategy Iteration are
 standard algorithms which have to perform their computation on the
 whole MDP resulting in significant computation time and memory
-requirements. Further we describe BRTDP which is a heuristic with a
-significant advantage on suitable models.
+requirements. Further we describe BRTDP which is a heuristic with
+a significant advantage on many models.
 
 Another approach is formulating the problem as a system linear equations
-and solving it. The solution is precise and has guaranteed correctness
+and solving it.  The solution is precise and has guaranteed correctness
 but the computation quickly becomes expensive as the model grows in
-size. We do not elaborate on this method -- the reader is referred to
-\parencite{forejt}.
+size.  See \parencite{forejt} for a description of this method.
 
 \subsection*{Computing Zero States}
 
@@ -218,7 +279,7 @@ $P^\sigma_{\mathcal{M},z}(\lozenge F) = 0$. TODO.
 
 \subsection{Value Iteration}
 
-Value iteration (in its variation for computing maximum rewards) is a
+Value iteration (in its variation for computing expected maximum rewards) is a
 dynamic programming algorithm which was first described by Richard
 Bellman (known for introducing the term dynamic programming) in 1957
 \parencite{bellman}.
@@ -229,14 +290,11 @@ newly introduced variables $x_s^n, s \in S, n \in \mathbb{N}$.
 x_s^n =
 \begin{cases}
     1 & \text{if }s \in F \\
-    0 & \text{if }s \in Z \\
-
-    \max_{a \in E(s)} \sum_{s' \in S} \Delta(s,a)(s') \cdot x_{s'}^{n-1}
-    & \text{if }s \in S \setminus (F \cup Z)
+    0 & \text{if }s \in Z \lor (s \not \in F \land n = 0) \\
+    \max\limits_{a \in E(s)} \sum\limits_{s' \in S} \Delta(s,a)(s') \cdot x_{s'}^{n-1}
+    & \text{otherwise} % \text{if }s \in S \setminus (F \cup Z)
 \end{cases}
 \]
-
-TODO: Fix the relation.
 By computing $x^n$ for $n = 1,2,\ldots$ we gain increasingly precise
 estimate of the actual maximum reachability probability,
 formally $\lim_{n \to \infty} x^n_s = P_{\mathcal{M},s}(\lozenge F)$.
@@ -257,31 +315,35 @@ properties.
     \Do
         \ForEach{$s \in S \setminus (F \cup Z)$}
             \State $x_s \coloneqq
-                \max_{a \in E(s)} \sum_{s' \in S} \Delta(s,a)(s') \cdot x_{s'}$
+            \max_{a \in E(s)} \sum_{s' \in S} \Delta(s,a)(s') \cdot x_{s'}$
         \EndFor
     \doWhile{the change of $x_s$ for any $s$ is greater than $\epsilon$}
 \end{algorithmic}
 \end{algorithm}
 
 Value iteration is an easy method for computing the reachability
-probability of a given MDP. It is doing extra work on models where only
-a small part needs to be explored to find a good strategy as it has to
-compute its results for all the states.
+probability of a given MDP.  However we only have a proof of convergence
+and not a good stopping criterion.  Furthermore it is doing extra work
+on models where only a small part needs to be explored to find a good
+strategy as it has to compute its results for all the states.
+
+The solution to the first issue is the {\em interval iteration} algorithm.
+TODO
+
+Mention Interval Iteration.
+Describe origin and motivation.
+
+http://www.sciencedirect.com/science/article/pii/S0304397516307095
+http://pageperso.lif.univ-mrs.fr/~benjamin.monmege/talks/MoVe2015.pdf
+
+We will explore solutions to the second issue later with heuristic
+methods.
 
 \subsection{Strategy Iteration}
 Strategy Iteration (also Policy Iteration).
 Describe origin
 How it works
 Pros and cons
-
-\subsection{Interval Iteration}
-Interval Iteration.
-Describe origin and motivation.
-How it works
-Pros and cons
-
-http://www.sciencedirect.com/science/article/pii/S0304397516307095
-http://pageperso.lif.univ-mrs.fr/~benjamin.monmege/talks/MoVe2015.pdf
 
 \section{Bounded Real-Time Dynamic Programming}
 
