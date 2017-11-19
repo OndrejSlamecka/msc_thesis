@@ -294,7 +294,7 @@ While UCT achieved success in many games \parencite{mcts_survey},
 for example in chess it does not perform well. The reason being that chess
 games contain a lot of trap states (states from which the opponent
 has a guaranteed victory) which are reachable just in a few turns. UCT
-then spends a lot of time exploring these fruitless parts of the search
+then spends a lot of time exploring these unimportant parts of the search
 tree \parencite{mcts_vs_chess}.
 
 \subsection{Computer Go}
@@ -319,9 +319,8 @@ A Go player can observe that unlike in Chess there is seldom a quick way
 to lose, as a loss of a small part of territory may be reversed, however
 losing an important piece is hardly reversible.
 This gives us an important example of games where MCTS performs well (in
-Go it is worth exploring a plethora of moves) and where it does not (in
-Chess large parts of the game tree may be dead end) TODO: cite the
-article.
+Go it is worth exploring a plethora of moves) and where it does not
+(e.g. in Chess, due to reasons described above).
 It seems plausible this
 generalizes well to territory versus piece based games.
 

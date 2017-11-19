@@ -34,26 +34,42 @@ performance is very bad (TODO: check this is the case on more models).
 \]
 
 
-\section{MCTS-BRTDP}
+\section{Bounded MCTS}
 
-MCTS-BRTDP is a variant of MCTS where the tree policy is the standard
-selection of a node with the maximum UCB value. The default policy is
-BRTDP as described in \autoref{ch_mdp} and the bound updates then continue
-through the tree upwards to its root.
+BMCTS is an algorithm which implements the general MCTS scheme in the
+most straightforard way while maintaining guarantees about the result.
+The tree node selection is done using the
+heuristics described above, in each step of each rollout the action is
+chosen uniformly at random.
+
+The main distinction is in the update phase. To maintain the lower and
+upper bounds, backpropagation using the Bellman update is performed
+from the final state of the rollout to the state corresponding to
+the selected tree node, and then on the states corresponding to the
+nodes on the taken tree path. Compare this with the usual MCTS
+implementation where this is not necessary and updates are performed
+only on the tree path.
+
+This algorithm is an improvement upon random sampling as it guides the
+random rollouts towards the parts of the decision process which seem
+more relevant for maximizing the sought probability.
 
 \begin{algorithm}
-\caption{MCTS-BRTDP}
-\label{mcts-brtdp}
+\caption{BMCTS}
+\label{alg_bmcts}
 \begin{algorithmic}
-\Function{MCTS-BRTDP}{$s_0$}
+\Function{BMCTS}{$s_0$}
     \State Let $v_0$ be the root of the MCTS tree, with $v_0.state = s_0$.
     \While{$U(s_0) - L(s_0) > \epsilon$}
         \State $v_l \gets \Call{TreePolicy}{v_0}$
-        \State $\Delta \gets \Call{BRTDP}{v_l}$
+        \State $\Delta \gets \Call{DefaultPolicy}{v_l}$
         \State $\Call{Backup}{v_l, \Delta}$
     \EndWhile
     \State \Return Action from $v_0$ to the best node (by some
     given metric).
+\EndFunction
+
+\Function{DefaultPolicy}{$s$}
 \EndFunction
 
 \Function{TreePolicy}{$s$}
@@ -71,40 +87,43 @@ through the tree upwards to its root.
 \end{algorithmic}
 \end{algorithm}
 
+
 TODO: Prove AC.
 
-\section{Bounded MCTS}
 
-BMCTS is an algorithm similar to MCTS-BRTDP but the default policy
-selects the next node (TODO: action?) at random with uniform
-distribution.
+\section{MCTS-BRTDP}
 
-TODO: Describe the advantage and disadvantages.
+MCTS-BRTDP is a variation of BMCTS in which each rollout is a
+single iteration of BRTDP as described in \autoref{ch_mdp}. This allows
+for significantly faster updates as compared to BMCTS but still
+utilizing exploration which makes it possible to overcome parts of the
+MDP which are hard for BRTDP.
+
+TODO: How do we deal with end components and why we don't do it. What if
+we grow a tree into an end component? What happens if a state already is
+in a tree?
 
 The functions \textsc{TreePolicy} and \textsc{Backup} are implemented in
-the same way as in \autoref{mcts-brtdp}.
+the same way as in \autoref{alg_bmcts}.
+
 
 \begin{algorithm}
-\caption{BMCTS}
-\label{bmcts}
+\caption{MCTS-BRTDP}
+\label{mcts-brtdp}
 \begin{algorithmic}
-\Function{BMCTS}{$s_0$}
+\Function{MCTS-BRTDP}{$s_0$}
     \State Let $v_0$ be the root of the MCTS tree, with $v_0.state = s_0$.
     \While{$U(s_0) - L(s_0) > \epsilon$}
         \State $v_l \gets \Call{TreePolicy}{v_0}$
-        \State $\Delta \gets \Call{DefaultPolicy}{v_l}$
+        \State $\Delta \gets \Call{BRTDP}{v_l}$ % TODO: ITERATION
         \State $\Call{Backup}{v_l, \Delta}$
     \EndWhile
     \State \Return Action from $v_0$ to the best node (by some
     given metric).
 \EndFunction
 
-\Function{DefaultPolicy}{$s$}
-\EndFunction
-
 \end{algorithmic}
 \end{algorithm}
-
 
 TODO: Prove AC.
 
