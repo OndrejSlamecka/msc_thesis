@@ -114,6 +114,9 @@ maximization of rewards in MDP).
 \end{algorithmic}
 \end{algorithm}
 
+
+TODO: Example execution.
+
 \section{Solving Games}
 
 In this section a brief introduction to game theory is given, starting
@@ -126,16 +129,17 @@ Observing where it performs good and where it does not provides insight
 into MCTS and is a useful starting point for understanding the results
 of evaluation in \autoref{ch_evaluation}.
 
-
-Our definition of a game is that of a {\em perfect-information
-extensive-form game}. The perfect-information in games corresponds to
+For precise understanding of the model of games we present the following
+definition.
+The perfect-information in games corresponds to
 full observability in MDP.  The reader can notice other similarities
 with MDPs as well, for example games have states, final states, actions
 and enabled actions, as well as rewards. On the other hand the
 transition function is deterministic.
 
 \begin{definition}
-    A {\em game} is a tuple $G = (N, S, F, A, E, \Delta, \rho, u)$,
+    A {\em perfect-information extensive-form game}
+    is a tuple $G = (N, S, F, A, E, \Delta, \rho, u)$,
     where
     \begin{itemize}
         \item $N \subseteq \mathbb{N}$ is a finite set of players,
@@ -243,7 +247,7 @@ of minimax, equivalent to minimax in zero-sum games.
 \begin{algorithmic}
 \Function{negamax}{$node$}
     \If{$node$ is a leaf}
-        \State \Return hmm.. how to write it
+        \State \Return TODO
     \EndIf
     \State \Return $\max \{ - \Call{negamax}{child}
         \mid child \text{ of } node \}$
@@ -251,7 +255,9 @@ of minimax, equivalent to minimax in zero-sum games.
 \end{algorithmic}
 \end{algorithm}
 
-TODO: example execution
+% https://github.com/soratobukuroneko/tictactoe-negamax/blob/master/tictactoe.c
+
+TODO: example execution on tic tac toe
 
 For larger games a variation called {\em minimax search} is used, which
 performs the computation only to a limited depth, and then uses
@@ -280,6 +286,12 @@ action a player should take in a zero-sum game.
 \end{algorithm}
 
 TODO: Example execution?
+
+% http://tim.hibal.org/blog/alpha-zero-how-and-why-it-works/
+
+In comparison with minimax search MCTS may ignore unimportant
+branches of the game tree and instead explore in greater detail the more
+promising branches.
 
 An important theoretical result is
 that MCTS converges to minimax \parencite{Kocsis},

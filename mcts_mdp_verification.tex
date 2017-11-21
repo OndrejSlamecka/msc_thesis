@@ -88,7 +88,9 @@ more relevant for maximizing the sought probability.
 \end{algorithm}
 
 
-TODO: Prove AC.
+TODO: Prove AC of this with UCB. This should be easy as eventually this will sample all
+the paths in the MDP. The problem might be that there is a small chance
+we will cycle in an end component.
 
 
 \section{MCTS-BRTDP}
@@ -106,6 +108,8 @@ in a tree?
 The functions \textsc{TreePolicy} and \textsc{Backup} are implemented in
 the same way as in \autoref{alg_bmcts}.
 
+TODO: Solve the problem with growing the tree into a MEC by removing the
+subtree containing nodes of the MEC when BRTDP collapses it.
 
 \begin{algorithm}
 \caption{MCTS-BRTDP}
@@ -115,7 +119,7 @@ the same way as in \autoref{alg_bmcts}.
     \State Let $v_0$ be the root of the MCTS tree, with $v_0.state = s_0$.
     \While{$U(s_0) - L(s_0) > \epsilon$}
         \State $v_l \gets \Call{TreePolicy}{v_0}$
-        \State $\Delta \gets \Call{BRTDP}{v_l}$ % TODO: ITERATION
+        \State $\Delta \gets \text{an iteration of } \Call{BRTDP}{v_l}$
         \State $\Call{Backup}{v_l, \Delta}$
     \EndWhile
     \State \Return Action from $v_0$ to the best node (by some
@@ -125,7 +129,8 @@ the same way as in \autoref{alg_bmcts}.
 \end{algorithmic}
 \end{algorithm}
 
-TODO: Prove AC.
+TODO: Prove AC with UCB. This should somehow explain
+what happens if a state already is in a tree?
 
 
 \section{UCB in BRTDP}

@@ -74,7 +74,7 @@ of Markov Decision Processes},
 \usepackage{amsthm}
 \usepackage{amsfonts}
 \usepackage{mathtools}
-\usepackage{pdflscape} %% alternatively pdflscape if this doesnt work
+\usepackage{pdflscape}
 \usepackage{tikz}
 \usepackage{url}      %% Hyperlinks
 \usepackage{listings} %% Source code highlighting
@@ -97,6 +97,7 @@ of Markov Decision Processes},
 \theoremstyle{definition}
 \newtheorem{definition}{Definition}
 \newtheorem{example}{Example}
+\providecommand*{\exampleautorefname}{Example}
 
 %% Commands
 \newcommand{\powerset}[1]{\mathcal{P}(#1)}
@@ -108,8 +109,8 @@ of Markov Decision Processes},
 \algnewcommand\algorithmicforeach{\textbf{for each}}
 \algdef{S}[FOR]{ForEach}[1]{\algorithmicforeach\ #1\ \algorithmicdo}
 
-%% TikZ, initial states and such
-\usetikzlibrary{arrows,automata}
+%% TikZ, initial states, clouds and such
+\usetikzlibrary{arrows,automata,shapes}
 
 
 \begin{document}

@@ -2,10 +2,9 @@
 \label{ch_evaluation}
 
 This chapter explains the basics of working with PRISM model checker,
-then describes how are the algorithms implemented as a part of PRISM and
-how do they compare to other methods on standard models.
-(TODO: In the last section we make some observations relating the model
-structure with the performance of the methods).
+then describes how are the algorithms implemented as a part of PRISM,
+how they behave on small models, and how do they compare to other
+methods on standard models.
 
 \section{PRISM, Probabilistic Model Checker}
 
@@ -180,24 +179,43 @@ on when the flag \verb|next_action 5| is added to a command using
 MCTS-BRTDP. This change makes the BRTDP implementation chose next action
 uniformly at random instead of the BRTDP-way by upper bound.
 
-\section{Models}
+\section{Behaviour on Small Models}
 
-Experimental evaluation was done on standard models
+Describe how do MCTS based methods solve few small models like
+
+* bin tree.
+
+* the BRTDP adversary.
+
+* On the thing below, might be good to compare with BRTDP.
+\begin{verbatim}
+  init -> cloud of tens of states -> target
+       \> easy path               -> target
+\end{verbatim}
+
+
+\section{PRISM Benchmark Suite and Other Models}
+
+Experimental evaluation was done mainly on standard models
 distributed with PRISM. Most of the MDPs described by these models are
 concerned with network configuration where randomness plays important
-role in achieving a common goal. We provide a brief description of each
-model and refer the reader to thorough description on PRISM's website.
+role in achieving a common goal. We provide a brief and incomplete
+description of several models just to offer basic familiarity
+and refer the reader to the thorough descriptions on PRISM's website.
 http://www.prismmodelchecker.org/casestudies/
 
-The description of the models in the PRISM language can be found inside
+We also created new MDPs by combining the PRISM models with the MDP
+which is hard for BRTDP (\autoref{brtdp_adversary}). We describe them in
+the last subsection.
+
+The description of all the models in the PRISM language can be found inside
 \verb|tests/reachability/models| in the source codes attached to this
 thesis.
 
-TODO: Do only two or three which we will discuss later.
-
 \subsection*{Zero-configuration networking}
 
-{\em Zeroconf} model corresponds to a set of computers establishing a
+{\em
+Zeroconf}\footnote{\href{http://www.prismmodelchecker.org/casestudies/zeroconf.php}{http://www.prismmodelchecker.org/casestudies/zeroconf.php}} model corresponds to a set of computers establishing a
 network without a given leader. Such leader could be a human setting
 static IP addresses or a DHCP server which would need to be configured
 up front -- in both cases there is extra work required.
@@ -212,11 +230,6 @@ repeat the process. If it does not receive a response it then broadcasts
 twice an ARP packet asserting this computer's use of the chosen IP
 address.
 
-TODO: defering and stuff, just one paragraph
-
-To summarize, the model describes $N$ computers establishing a network,
-each sending $K$ probes to inform the others of its choices.
-
 \subsection*{IEEE 1394 FireWire}
 
 FireWire is an interface standard for serial bus
@@ -225,45 +238,116 @@ FireWire is an interface standard for serial bus
 
 \subsection*{Randomised Consensus Shared Coin Protocol}
 
-\subsection*{Asynchronous Leader Election Protocol}
-
 \subsection*{mer}
+
+\subsection*{Combining PRISM models with BRTDP adversary}
+
+We combined the MDPs in two ways. The first is by {\em branching} and the
+resulting shape is shown in \autoref{fig:branching}.
+
+\begin{figure}[h]
+\begin{center}
+\begin{tikzpicture}
+    \tikzstyle{state}=[thick,draw=black,circle]
+    \tikzstyle{transition}=[draw,shape=circle,fill=black]
+    \tikzstyle{loop}=[looseness=5, in=120, out=60]
+
+    \node[state] at (0,0) (s0) {0};
+    \node[transition] at (1.6,0) (s0b) {};
+    \node[state] at (3.2,0) (s1) {1};
+    \node[transition] at (4.8,0) (s1b) {};
+    \node[state] at (6.4,0) (s2) {2};
+    \node[transition] at (8,0) (s2b) {};
+    \node[state] at (9.6,0) (s3) {3};
+
+    \node [cloud, draw,cloud puffs=10,cloud puff arc=120, aspect=2,
+        inner ysep=1em] at (2,-3) (zconf) {zeroconf};
+
+    \draw (s0) edge [bend right, ->] node [midway, right] {$b$} (zconf);
+
+    \draw (s0) edge [bend left, ->] node [midway, above] {$a$} (s0b);
+    \draw[->] (s0b) -- (s1) node [midway, above] {0.01};
+    \draw (s0b) edge [bend left, ->] node [midway, above] {0.99} (s0);
+
+    \draw (s1) edge [bend left, ->] node [midway, above] {} (s1b);
+    \draw[->] (s1b) -- (s2) node [midway, above] {0.01};
+    \draw (s1b) edge [bend left, ->] node [midway, above] {0.99} (s0);
+
+    \draw (s2) edge [bend left, ->] node [midway, above] {} (s2b);
+    \draw[->] (s2b) -- (s3) node [midway, above] {0.01};
+    \draw (s2b) edge [bend left, ->] node [midway, above] {0.99} (s0);
+
+    \draw (s3) edge [loop,->] node [above] {} (s3);
+
+\end{tikzpicture}
+\end{center}
+    \caption{Combining zeroconf model with the BRTDP adversary in a
+    branching manner.}
+    \label{fig:branching}
+\end{figure}
+
+TODO: Parallel composition.
 
 \section{Experimental Comparison}
 
-On the following pages we present the results of our measurements. TODO:
-describe the machine and JVM configuration. TODO: set up an example
+On the following pages we present the results of our measurements.
+In the presented tables rows correspond to models and their
+configuration, columns to methods and chosen exploration constant.  Each
+table cell contains comma separated running time in seconds and number of visited
+states of the MDP\footnote{The number of states is, unlike running time,
+agnostic to implementation details.}\textsuperscript{,}\footnote{Value iteration has to construct the
+whole model in memory so the number of states it visits is the total
+number of states.}. Each experiment was repeated
+ten times and the results were averaged\footnote{There was no
+significant variance in the measured times so averaging provides
+representative results.}.
+
+TODO: describe the machine and JVM configuration.
+
+TODO: set up an example
 runbenchmarks script so that anyone can verify our results right away.
 
-The tables show that MCTS based methods are clear winners on the
-zeroconf model but also clear losers on the
+TODO: Table 1, comparison of VI, BRTDP, BRTDP-UCB, MCTS-BRTDP on the
+PRISM suite (zeroconf, firewire-impl, wlan, coin, leader, mer).
+Note that MCTS-BRTDP is almost as fast as BRTDP.
 
-In the following section we try to derive some reasons for this results
-and generalize.
+TODO: Table 2, comparison of VI, BRTDP, MCTS-BRTDP on branch-zeroconf,
+about 6 lines, 3 where BRTDP < MCTS-BRTDP < VI, and 3 where it is the
+other way.
+Note that overall MCTS-BRTDP does
+not do the worst or the best anywhere, making it a universal choice.
+
+TODO: branch-<some other model>, composition-<two models?>
 
 \begin{landscape}
-\begin{tabular}{ l  | c | c  }
-zeroconf   &    BRTDP\_UCB=None    &     VI\_UCB=None      \\
-N=4;K=4    &                0.162 &               15.321 \\
-\end{tabular}
+
+\begin{table}
+\begin{tabularx}{\textwidth}{ l  | c | c  }
+branch\_zeroconf &  BRTDP, MAX-DIFF   &   VI      \\
+$N=1, K=10$      &               46,  &       204, \\
+\end{tabularx}
+\caption{caption}
+\label{tab:branch_zconf}
+\end{table}
+
 \end{landscape}
 
-\section{Behaviour on Small Models}
 
-Describe how do MCTS based methods solve few small models like bin tree
+%\section{Model Structure and MCTS Performance}
 
-\section{Model Structure and MCTS Performance}
+%TODO: Explain why MCTS-BRTDP performs almost as well as BRTDP on some
+%models
 
-We discuss what are the possible reasons MCTS performs well on some
-models and worse on others. (See e.g. On Adversarial Search Spaces and
-Sampling-Based Planning for a similar comparison between MCTS on Chess
-and Go).
+%We discuss what are the possible reasons MCTS performs well on some
+%models and worse on others. (See e.g. On Adversarial Search Spaces and
+%Sampling-Based Planning for a similar comparison between MCTS on Chess
+%and Go).
 
-From the Chess and Go comparison it would seem that MCTS based methods would
-not perform well in verification as there are usually many dead ends.
-However by tuning the parameters and trying variants of the algorithms
-we have achieved better results on several models than other known methods.
+%From the Chess and Go comparison it would seem that MCTS based methods would
+%not perform well in verification as there are usually many dead ends.
+%However by tuning the parameters and trying variants of the algorithms
+%we have achieved better results on several models than other known methods.
 
-TODO :-/
+%TODO :-/
 
-can we extrapolate where will each method do well from small instances of the models?
+%can we extrapolate where will each method do well from small instances of the models?

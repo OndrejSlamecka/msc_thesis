@@ -234,6 +234,11 @@ using only actions in $A'$.
 TODO: potrebujeme definovat maximal end component? Pokud ano, tak staci
 zminit, ze jako usporadani uvazujeme mnozinove usporadani po slozkach.
 
+EXAMPLE, mention trivial end compoennts (the whole MDP and a "end
+state").
+
+% http://www.lsv.fr/axes/VASCO/gdt/haddad_gdt_20012016.pdf
+
 \noindent {\bf Observability of MDP.}
 One can distinguish between various levels of knowledge about an MDP,
 usually depending on the source of the model.
@@ -270,13 +275,6 @@ and solving it.  The solution is precise and has guaranteed correctness
 but the computation quickly becomes expensive as the model grows in
 size.  See \parencite{forejt} for a description of this method.
 
-\subsection*{Computing Zero States}
-
-Before introducing the algorithms we first need to calculate the set $Z$
-of {\em zero states} for given MDP $\mathcal{M}$. These are states $z
-\in Z$ such that for any $\sigma \in \Sigma$ it holds that
-$P^\sigma_{\mathcal{M},z}(\lozenge F) = 0$. TODO.
-
 \subsection{Value Iteration}
 
 Value iteration (in its variation for computing expected maximum rewards) is a
@@ -284,12 +282,25 @@ dynamic programming algorithm which was first described by Richard
 Bellman (known for introducing the term dynamic programming) in 1957
 \parencite{bellman}.
 
-The main idea is materialized in the following recurrence relation for
-newly introduced variables $x_s^n, s \in S, n \in \mathbb{N}$.
+Before showing the algorithm we first note that it will need to
+process all states. However, the values in some states are quite easy to
+compute and a preprocessing will allow for reduction of the
+state space.
+
+These easy states are in set $Z$
+of {\em zero states} or set $F'$ of {\em extended target states}
+for given MDP $\mathcal{M}$. These are states $z
+\in Z$ such that for any $\sigma \in \Sigma$ it holds that
+$P^\sigma_{\mathcal{M},z}(\lozenge F) = 0$,
+and $f \in F$ such that ... TODO.
+
+The main idea of value iteration is materialized in the following
+recurrence relation for newly introduced variables $x_s^n, s \in S, n
+\in \mathbb{N}$.
 \[
 x_s^n =
 \begin{cases}
-    1 & \text{if }s \in F \\
+    1 & \text{if }s \in F \cup F' \\
     0 & \text{if }s \in Z \lor (s \not \in F \land n = 0) \\
     \max\limits_{a \in E(s)} \sum\limits_{s' \in S} \Delta(s,a)(s') \cdot x_{s'}^{n-1}
     & \text{otherwise} % \text{if }s \in S \setminus (F \cup Z)
@@ -298,7 +309,8 @@ x_s^n =
 By computing $x^n$ for $n = 1,2,\ldots$ we gain increasingly precise
 estimate of the actual maximum reachability probability,
 formally $\lim_{n \to \infty} x^n_s = P_{\mathcal{M},s}(\lozenge F)$.
-TODO: prove!
+TODO: prove (use Puterman's proof with reward $1$ when reaching target
+state, 0 otherwise).
 
 This recurrence relation is now turned into a dynamic programming
 algorithm as shown in \autoref{vi}. Instead of iterating $n$ times the
@@ -327,19 +339,18 @@ and not a good stopping criterion.  Furthermore it is doing extra work
 on models where only a small part needs to be explored to find a good
 strategy as it has to compute its results for all the states.
 
-The solution to the first issue is the {\em interval iteration} algorithm.
-TODO
+The solution to the first issue is the {\em interval iteration}
+algorithm \parencite{interval_iteration}, an algorithm in parts similar
+to value iteration but which maintains lower and upper bounds of the
+sought probability. The algorithm has a well-defined stopping criterion
+and a bound on the running time.  We will explore solutions to the
+second issue later with heuristic methods.
 
-Mention Interval Iteration.
-Describe origin and motivation.
-
-http://www.sciencedirect.com/science/article/pii/S0304397516307095
-http://pageperso.lif.univ-mrs.fr/~benjamin.monmege/talks/MoVe2015.pdf
-
-We will explore solutions to the second issue later with heuristic
-methods.
+% http://www.sciencedirect.com/science/article/pii/S0304397516307095
+% http://pageperso.lif.univ-mrs.fr/~benjamin.monmege/talks/MoVe2015.pdf
 
 \subsection{Strategy Iteration}
+
 Strategy Iteration (also Policy Iteration).
 Describe origin
 How it works
@@ -365,38 +376,7 @@ Let us define the {\em value function} $V : S \times A \to
 BRTDP is learning $V$ by computing its lower and upper bounds $L, U$
 through simulated runs of $\mathcal{M}$ from the given initial state.
 TODO: CONTINUE explanation
-
-Unfortunately this algorithm is not guaranteed to converge when the MDP
-contains non-trivial end components. TODO: Picture with explanation
-
-\begin{example}
-\hfill \break
-\centering
-\begin{tikzpicture}
-    \tikzstyle{state}=[thick,draw=black,circle]
-    \tikzstyle{transition}=[draw,shape=circle,fill=black]
-
-    \draw[<-] (s0) -- node[above] {} ++(-1cm,0);
-
-    \node[state] at (0,0) (s0) {$s_0$};
-    \node[state] at (2,0) (s1) {$s_1$};
-    \node[transition] at (4,0) (s0b) {};
-    \node[state] at (6,-0.7) (s2) {$s_2$};
-    \node[state] at (6, 0.7) (s3) {$s_3$};
-
-    \draw (s0) edge [bend left, ->] node [midway, above] {$a$} (s1);
-    \draw (s1) edge [bend left, ->] node [midway, below] {$b$} (s0);
-    \draw (s1) edge [->] node [midway, above] {$c$} (s0b);
-
-    \draw[->] (s0b) -- (s2) node [midway, below] {0.5};
-    \draw[->] (s0b) -- (s3) node [midway, above] {0.5};
-\end{tikzpicture}
-\end{example}
-
-TODO: Explain how the algorithms gets modified to handle end components.
-
-Prove PAC?
-
+TODO: Assume no MECs besides trivial
 
 \begin{algorithm}
 \caption{BRTDP for MDPs without end components}
@@ -430,3 +410,82 @@ Prove PAC?
 given metric).
 \end{algorithmic}
 \end{algorithm}
+
+TODO: Prove AC?
+
+\subsection*{BRTDP for MDPs with End Components}
+Unfortunately BRTDP is not guaranteed to converge when the MDP
+contains non-trivial end components.
+
+\begin{example}
+    TODO: Describe why BRTDP is stuck here.
+
+\hfill \break
+\centering
+\begin{tikzpicture}
+    \tikzstyle{state}=[thick,draw=black,circle]
+    \tikzstyle{transition}=[draw,shape=circle,fill=black]
+
+    \draw[<-] (s0) -- node[above] {} ++(-1cm,0);
+
+    \node[state] at (0,0) (s0) {$s_0$};
+    \node[state] at (2,0) (s1) {$s_1$};
+    \node[transition] at (4,0) (s0b) {};
+    \node[state] at (6,-0.7) (s2) {$s_2$};
+    \node[state] at (6, 0.7) (s3) {$s_3$};
+
+    \draw (s0) edge [bend left, ->] node [midway, above] {$a$} (s1);
+    \draw (s1) edge [bend left, ->] node [midway, below] {$b$} (s0);
+    \draw (s1) edge [->] node [midway, above] {$c$} (s0b);
+
+    \draw[->] (s0b) -- (s2) node [midway, below] {0.5};
+    \draw[->] (s0b) -- (s3) node [midway, above] {0.5};
+\end{tikzpicture}
+\end{example}
+
+TODO: Briefly explain how the algorithms gets modified to handle end
+components, but not much details and no proofs.
+
+\subsection*{Variants of BRTDP}
+When in state $s$ and chosen action $a$,
+the choice of the next state does not necessarily have to be done by
+sampling the transition distribution $\Delta(s,a)$ (we call this variant
+HIGH-PROB) but can be instead be chosen with probability
+$\Delta(s,a)(s') \cdot (U(s') - L(s'))$, we call this variant MAX-DIFF.
+One can think of other variants, for example round-robin choice.
+
+\begin{example}
+\label{brtdp_adversary}
+We conclude with an example which is hard for most variants of BRTDP.
+For example the HIGH-PROB
+
+\begin{center}
+\begin{tikzpicture}
+    \tikzstyle{state}=[thick,draw=black,circle]
+    \tikzstyle{transition}=[draw,shape=circle,fill=black]
+    \tikzstyle{loop}=[looseness=5, in=120, out=60]
+
+    \node[state] at (0,0) (s0) {0};
+    \node[transition] at (1.6,0) (s0b) {};
+    \node[state] at (3.2,0) (s1) {1};
+    \node[transition] at (4.8,0) (s1b) {};
+    \node[state] at (6.4,0) (s2) {2};
+    \node[transition] at (8,0) (s2b) {};
+    \node[state] at (9.6,0) (s3) {3};
+
+    \draw (s0) edge [bend left, ->] node [midway, above] {$a$} (s0b);
+    \draw[->] (s0b) -- (s1) node [midway, above] {0.01};
+    \draw (s0b) edge [bend left, ->] node [midway, above] {0.99} (s0);
+
+    \draw (s1) edge [bend left, ->] node [midway, above] {$b$} (s1b);
+    \draw[->] (s1b) -- (s2) node [midway, above] {0.01};
+    \draw (s1b) edge [bend left, ->] node [midway, above] {0.99} (s0);
+
+    \draw (s2) edge [bend left, ->] node [midway, above] {$c$} (s2b);
+    \draw[->] (s2b) -- (s3) node [midway, above] {0.01};
+    \draw (s2b) edge [bend left, ->] node [midway, above] {0.99} (s0);
+
+    \draw (s3) edge [loop,->] node [above] {$d$} (s3);
+\end{tikzpicture}
+\end{center}
+\end{example}

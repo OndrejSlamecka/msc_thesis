@@ -1,14 +1,42 @@
 \chapter{Conclusion}
 
-TODO: sum up what we have done
+We introduced Markov decision processes,
+the problem of their verification and known approaches to its solution.
+Monte Carlo tree search was described in its most common variant UCT
+(Upper Confidence bound applied to Trees),
+together with its applications to maximizing rewards in MDPs and solving
+games.
+We suggested various new algorithms by combining the known
+approaches to MDP verification with the techniques of MCTS. These
+algorithms were implemented and evaluated on standard and new models.
 
-ideas to work on:
+We have observed the MAX-DIFF variant of BRTDP is a very strong
+heuristic which itself often balances well between exploration and
+exploitation in common MDP models which was our goal when designing the
+MCTS based algorithm. Our MCTS-BRTDP algorithm
+performs only slightly worse on the PRISM benchmark suite while it
+performs significantly better on models hard for BRTDP. Even though
+value iteration does well on such hard-for-BRTDP models it loses on the
+PRISM suite, making MCTS-BRTDP a good universal choice for any MDP.
 
-practical:
-time bounded properties,
-get the strategy from the solution (easy, once it converges pick the
-action with the best upper or lower (?!) bound at each step).
+There is still a lot of work to be done in order to properly understand
+how MCTS based methods may be applied in MDP verification. A
+quantitative study of the algorithms' executions would help understand
+which parts
+of an MDP are explored even though they are not important and which
+important parts are explored too late. This could be used to suggest new
+formulas for tree node selection or other variations, however due to
+complexity of the models this might be a very hard task.
 
-theory:
-other MCTS based algorithms,
-algorithms for partially observable MDPs,
+Another interesting area of research might be into
+new algorithms where the MCTS approach has better chances to
+improve the search, for example one might try running MCTS and BRTDP in
+stages, each time for a limited number of iterations, until the bounds
+are sufficiently close.
+
+There
+are also rather easy practical tasks like adding support for time
+bounded properties or extracting the strategy from the
+solution\footnote{Once
+the algorithm converges choose the action with the best upper bound at
+each step.}.
