@@ -142,7 +142,8 @@ transition function is deterministic.
     is a tuple $G = (N, S, F, A, E, \Delta, \rho, u)$,
     where
     \begin{itemize}
-        \item $N \subseteq \mathbb{N}$ is a finite set of players,
+        \item $N \subseteq \mathbb{N}$ is a set of $n$ players,
+            for $n \in \mathbb{N}$,
         \item $S$ is a set of states,
         \item $F \subseteq S$ is a set of final (terminal) states,
         \item $A$ is the set of actions,
@@ -151,7 +152,7 @@ transition function is deterministic.
         \item $\Delta : S \times A \to A$ is the transition function,
         \item $\rho : S \to N$ is a function which determines who plays in each state,
             and finally
-        \item $u = (u_1,\ldots,u_n)$ is the tuple of
+        \item $u = (u_1,\ldots,u_{n})$ is the tuple of
             utility (reward) functions where each $u_i, i \in N$ is a function
             $u_i : F \to \mathbb{R}$.
     \end{itemize}
@@ -234,22 +235,37 @@ reward by switching a strategy.
 von Neumann.}.
 
 The {\em minimax algorithm} computes the value of each leaf in a game
-tree assuming the opponent tries to harms the player as much as
-possible. The algorithm then tells the player to play the action going
-into the subtree with the highest value node.
+tree assuming the opponent tries to harm the player as much as
+possible. That is if player $0$ is computing which turn to play,
+she uses the fact that she can maximize her profit in her future turns,
+but assumes player $1$ will try to minimize it.
+After all options are computed in this alternating manner,
+player $1$ plays the action going into the subtree with the highest value node.
 
 \autoref{negamax}, the {\em negamax algorithm}, is a minor simplification
-of minimax, equivalent to minimax in zero-sum games.
+of minimax.
+Instead of
+alternating between maximization and minimization the algorithm always
+maximizes but alters the sign of the value in each step. One can see
+this is equivalent to minimax in zero-sum games.
+The $[1,-1][player]$ part of
+\autoref{negamax} returns 1 for player 0 but $-1$ for player 1.
+We denote $u'$ the payoff function defined as $u'(f) = u_1(f)$ if
+player $1$ wins in $f$, and as $u'(f) = -u_2(f)$ if player $2$ wins in
+$f$.
+
+% http://www.hamedahmadi.com/gametree/#negamax
 
 \begin{algorithm}
 \caption{Negamax}
 \label{negamax}
 \begin{algorithmic}
-\Function{negamax}{$node$}
-    \If{$node$ is a leaf}
-        \State \Return TODO
+\Function{negamax}{$node, player$}
+    \If{$node \in F$, i.e. a leaf in the tree}
+    \State \Return $[1,-1][player] \cdot u'(node)$
+        otherwise
     \EndIf
-    \State \Return $\max \{ - \Call{negamax}{child}
+    \State \Return $\max \{ - \Call{negamax}{child, 1 - player}
         \mid child \text{ of } node \}$
 \EndFunction
 \end{algorithmic}
@@ -257,9 +273,12 @@ of minimax, equivalent to minimax in zero-sum games.
 
 % https://github.com/soratobukuroneko/tictactoe-negamax/blob/master/tictactoe.c
 
+TODO: invocation
+% https://en.wikipedia.org/wiki/Negamax
+
 TODO: example execution on tic tac toe
 
-For larger games a variation called {\em minimax search} is used, which
+For larger games a variation called {\em minimax (negamax) search} is used, which
 performs the computation only to a limited depth, and then uses
 a heurisic to evaluate the last node it processes (unless it is a leaf).
 
