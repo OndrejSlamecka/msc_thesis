@@ -171,6 +171,17 @@ actions could just be renamed.
 
 \end{example}
 
+A standard use of Markov decision processes has been in areas where it
+is useful to operate with rewards. This definition will be useful later.
+
+\begin{definition}
+If $(S, A, E, \Delta)$ is a Markov decision process,
+%$a \in A, s, s' \in S$, $a \in E(s)$, $\Delta(s,a)(s') > 0$,
+and $R : S \times A \times S \to \mathbb{R}$ is a function,
+then $(S,A,E,\Delta,R)$ is a {\em Markov decision process with rewards}.
+\end{definition}
+
+
 \begin{definition}[Path]
     An {\em infinite path} is
     a sequence $\omega = s_0 a_0 s_1 a_1
@@ -183,43 +194,10 @@ actions could just be renamed.
     $FPaths$.
 \end{definition}
 
-The following definition introduces what is commonly called strategy,
-policy, scheduler, controller or adversary. It is the decision maker in
-the MDP which looks at the path traversed so far and assigns each action
-$a$ in the last (current) state the probability of $a$ being chosen.
-
-\begin{definition}[Strategy]
-    Let $\mathcal{M} = (S,A,E,\Delta)$ be a Markov decision process.
-    A {\em strategy} is a function
-    $\sigma : FPath \to Dist(A)$
-    such that
-    $\sigma(\rho)(a) > 0 \implies a \in E(\last(\rho))$.
-\end{definition}
-
-The technical condition at the end ensures that only actions which can
-be chosen have non-zero probability assigned by the strategy.
-
-Importantly the strategies do not have to be that complicated.
-TODO: Mention or prove that there exists an optimal memory free strategy
-(this is in Puterman for reward maximization, does it hold for
-
-What happens once the strategy is fixed? The MDP becomes a Markov chain.
-This can be seen in the examples, e.g. if the strategy is to always
-choose $b$, the MDP from \autoref{ex_mdp} becomes the MC from
-\autoref{ex_mc}.
-
-For very small MDPs this gives the first algorithm for evaluating their
-properties: for every strategy reduce the MDP to a Markov chain and evaluate the
-property using known Markov chain algorithms, then aggregate the
-results\footnote{The idea of this naive method can be significantly improved and instead
-of exploring a vast amount of strategies only a small portion of
-reasonably good strategies is explored \parencite{smc}.}.
-
-
-Now we proceed to define an {\em end component} (EC) -- part of MDP which
-allows for an infinitely repeated cycle of states and actions in a path.
-End components are of particular interest when sampling an MDP (as the sampling
-agent might run in an EC indefinitely).
+When following a path one wants to avoid getting stuck in
+an infinitely repeated cycle of states and actions. The parts of MDP
+where this happens are called end components.
+An example end component is shown in \autoref{fig:non-triv-ec}.
 
 \begin{definition}[End component]
 Let $\mathcal{M} = (S, A, E, \Delta)$ be an MDP,
@@ -234,8 +212,59 @@ using only actions in $A'$.
 TODO: potrebujeme definovat maximal end component? Pokud ano, tak staci
 zminit, ze jako usporadani uvazujeme mnozinove usporadani po slozkach.
 
-EXAMPLE, mention trivial end compoennts (the whole MDP and a "end
-state").
+\begin{figure}[ht]
+\begin{center}
+\begin{tikzpicture}
+    \tikzstyle{state}=[thick,draw=black,circle]
+    \tikzstyle{transition}=[draw,shape=circle,fill=black]
+
+    \draw[<-] (s0) -- node[above] {} ++(-1cm,0);
+
+    \node[state] at (0,0) (s0) {$s_0$};
+    \node[state] at (2,0) (s1) {$s_1$};
+    \node[state] at (4,0) (s2) {$s_2$};
+
+    \draw (s0) edge [bend left, ->] node [midway, above] {$a$} (s1);
+    \draw (s1) edge [bend left, ->] node [midway, below] {$b$} (s0);
+    \draw (s1) edge [->] node [midway, above] {$c$} (s2);
+\end{tikzpicture}
+\end{center}
+\caption{An MDP with a non-trivial end component.}
+\label{fig:non-triv-ec}
+\end{figure}
+
+The following definition introduces what is commonly called strategy,
+policy, scheduler, controller or adversary. It is the decision maker in
+the MDP which looks at the path traversed so far and assigns each action
+$a$ in the last (current) state the probability of $a$ being chosen.
+
+\begin{definition}[Strategy]
+    Let $\mathcal{M} = (S,A,E,\Delta)$ be a Markov decision process
+    and $\rho \in FPaths$.
+    A {\em strategy} is a function
+    $\sigma : FPath \to Dist(A)$
+    such that\footnote{
+The condition ensures that only actions which can
+be chosen have non-zero probability assigned by the strategy.
+    }
+    $\sigma(\rho)(a) > 0 \implies a \in E(\last(\rho))$.
+
+    A strategy $\sigma$ is {\em memoryless} if $\sigma(\rho)$ depends
+    only on $\last(\rho)$.
+\end{definition}
+
+What happens once the strategy is fixed? The MDP becomes a Markov chain.
+This can be seen in the examples, e.g. if the strategy is to always
+choose $b$, the MDP from \autoref{ex_mdp} becomes the MC from
+\autoref{ex_mc}.
+
+For very small MDPs this gives the first algorithm for evaluating their
+properties: for every strategy reduce the MDP to a Markov chain and evaluate the
+property using known Markov chain algorithms, then aggregate the
+results\footnote{The idea of this naive method can be significantly improved and instead
+of exploring a vast amount of strategies only a small portion of
+reasonably good strategies is explored \parencite{smc}.}.
+
 
 % http://www.lsv.fr/axes/VASCO/gdt/haddad_gdt_20012016.pdf
 
@@ -259,21 +288,26 @@ In our case the systems are modelled as Markov decision processes and
 the properties are concerned about maximum probability of reaching a state.
 
 \noindent \textbf{Reachability probability.}
+
 $P^\sigma_{\mathcal{M},s}(\lozenge F)$
 
-TODO: Whcih method give guarantees and which do not?
+Importantly there is always a memoryless strategy maximizing the
+reachability probability. Puterman \parencite{puterman} proves this for
+reward maximization and we can use his proof with a simple reduction.
+For any MDP create an MDP with rewards, such that the reward function
+is zero everywhere, except when entering a target state it gives reward 1
+and when leaving a target state it gives reward -1. TODO: Check this is
+right.
 
 A description of the most common approaches to computing Pr... follows.
-Value Iteration and Strategy Iteration are
-standard algorithms which have to perform their computation on the
-whole MDP resulting in significant computation time and memory
-requirements. Further we describe BRTDP which is a heuristic with
-a significant advantage on many models.
+Standard algorithms Value Iteration and Strategy Iteration are shown
+and later we describe BRTDP.
 
-Another approach is formulating the problem as a system linear equations
-and solving it.  The solution is precise and has guaranteed correctness
-but the computation quickly becomes expensive as the model grows in
-size.  See \parencite{forejt} for a description of this method.
+One approach we do not explain is formulating the problem as a system
+linear equations and solving it. The solution is precise and has
+guaranteed correctness but the computation quickly becomes expensive as
+the model grows in size.  See \parencite{forejt} for a description of
+this method.
 
 \subsection{Value Iteration}
 
@@ -418,10 +452,9 @@ Unfortunately BRTDP is not guaranteed to converge when the MDP
 contains non-trivial end components.
 
 \begin{example}
-    TODO: Describe why BRTDP is stuck here.
+TODO: Describe why BRTDP is stuck here.
 
-\hfill \break
-\centering
+\begin{center}
 \begin{tikzpicture}
     \tikzstyle{state}=[thick,draw=black,circle]
     \tikzstyle{transition}=[draw,shape=circle,fill=black]
@@ -441,6 +474,7 @@ contains non-trivial end components.
     \draw[->] (s0b) -- (s2) node [midway, below] {0.5};
     \draw[->] (s0b) -- (s3) node [midway, above] {0.5};
 \end{tikzpicture}
+\end{center}
 \end{example}
 
 TODO: Briefly explain how the algorithms gets modified to handle end
@@ -456,8 +490,8 @@ One can think of other variants, for example round-robin choice.
 
 \begin{example}
 \label{brtdp_adversary}
-We conclude with an example which is hard for most variants of BRTDP.
-For example the HIGH-PROB
+We conclude with an example MDP, which is hard for most variants of BRTDP.
+For example the HIGH-PROB TODO
 
 \begin{center}
 \begin{tikzpicture}

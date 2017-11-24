@@ -36,11 +36,9 @@ called UCT is shown together with its application to maximizing rewards
 in MDPs and games. The chapter is based mostly on a thorough MCTS survey
 paper \parencite{mcts_survey}.
 
-Since the research into MCTS focuses mainly on using MCTS for reward maximization
-we also focus on that in this chapter unlike the rest of the thesis.
-
-TODO: define MDP with rewards here (but mention it in the mdp chapter
-too, just briefly, informaly)
+Since the research into MCTS focuses mainly on using MCTS for reward
+maximization we demonstrate the algorithms on the reward maximization
+problem too in this chapter unlike the rest of the thesis.
 
 \section{General MCTS Scheme}
 
@@ -92,9 +90,6 @@ $1/\sqrt(2)$ to be optimal under some circumstances.
 \autoref{uct} is implementation of the general \autoref{mcts}. As UCT is
 the most common type of MCTS algorithm, the terms are often used
 interchangeably in literature.
-
-TODO: Define precisely the problem uct is solving (it should be
-maximization of rewards in MDP).
 
 \begin{algorithm}
     \caption{Upper Confidence Bound for Trees}
@@ -174,8 +169,8 @@ player $i$ receives the reward $u_i(\Delta(s,a))$ and the game ends.
 
 \begin{example}
 A common choice of the utility function is $+1, 0, -1$ for victory, draw
-and loss, respectively. \autoref{fig:example_game} depicts such a game
-in a standard form -- using a tree.
+and loss, respectively. Below is a depiction of such a game
+in the usual way -- using a tree.
 There are two players,
 the nodes represent game states, leafs are the final states.
 The root of the tree is the initial state.
@@ -184,8 +179,6 @@ Functions $E$ and $\Delta$ are given by the drawn edges.
 $\rho$ is given by the color of the nodes
 and the payoff function is represented by a tuple in each leaf.
 
-
-\begin{figure}[ht]
 \begin{center}
 \begin{tikzpicture}
 \tikzset{
@@ -201,9 +194,6 @@ hollow node/.style={circle,draw,inner sep=1.5,minimum size=10pt}
     };
 \end{tikzpicture}
 \end{center}
-\caption{An example of a game.}
-\label{fig:example_game}
-\end{figure}
 \end{example}
 
 
@@ -220,14 +210,11 @@ optimize for their goals. A goal may be to maximize the player's reward,
 another goal may be to get a higher score than the opponents.
 
 \begin{example}
-    In \autoref{fig:goal_opt} let Alice be player 1 and Bob player 2.
+    In the game shown below let Alice be player 1 and Bob player 2.
     There is a single turn made by Alice in the black node.
 If her goal is to beat Bob she will pick the left node.
 If her goal is to maximize her profit she will choose the right one.
-\end{example}
 
-
-\begin{figure}[ht]
 \begin{center}
 \begin{tikzpicture}
 \tikzset{
@@ -240,9 +227,7 @@ hollow node/.style={circle,draw,inner sep=1.5,minimum size=10pt}
     child{node[hollow node,label=below:{(5,10)}]{}};
 \end{tikzpicture}
 \end{center}
-\caption{A single turn, two player game.}
-\label{fig:goal_opt}
-\end{figure}
+\end{example}
 
 In the following text
 we restrict ourselves to two player games in which players alternate in
@@ -324,7 +309,7 @@ $(N, S, s_0, F, A, E, \Delta, \rho, u)$, where players
 \Function{negamax}{$state, player$}
     \If{$state \in F$, i.e. a leaf in the game tree}
     \State \Return\footnote{The
-    $[1,-1][player]$ part returns 1 for player 0 but $-1$ for player 1.}
+    $[1,-1][player]$ evaluates to 1 for player 0 and to $-1$ for player 1.}
         $[1,-1][player] \cdot u_1(state)$
         otherwise
     \EndIf
@@ -360,14 +345,23 @@ $(N, S, s_0, F, A, E, \Delta, \rho, u)$, where players
     child anchor=north,
     l sep=0.7cm,
     s sep=1.7cm,
-  }
+  },
+  levellabel/.style={
+    tikz+={
+      \node [anchor=mid west] at (.mid -| levellabel coord) {#1};
+    },
+  },
+  tikz+={
+    \coordinate (levellabel coord) at (current bounding box.east);
+  },
 %
- [o:o:x/x::o/x::o, TTT=r:{\text{x's turn}, player = 0},
+[o:o:x/x::o/x::o, TTT=r:{}, levellabel={\text{x's turn}, player = 0},
  [o:o:x/x:x:o/x::o, TTT=b:{\makecell[c]{(-1)\cdot 1 \\ \text{x wins}}},
    edge label={node[midway,left,font=\scriptsize]{$\cdot (-1)$}}]
-   [o:o:x/x::o/x:x:o, TTT=r:{\text{o's turn}, player = 1},
+   [o:o:x/x::o/x:x:o, TTT=r:{}, levellabel={\text{o's turn}, player = 1},
    edge label={node[midway,right,font=\scriptsize]{$\cdot (-1)$}},
    [o:o:x/x:o:o/x:x:o, TTT=b:{\makecell[c]{1\cdot (-1) \\ \text{o wins}}},
+   levellabel={\phantom{\text{o's turn}, }player = 0},
    edge label={node[midway,right,font=\scriptsize]{$\cdot (-1)$}}]
  ]
 ]
