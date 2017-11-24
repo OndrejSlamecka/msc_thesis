@@ -76,6 +76,8 @@ of Markov Decision Processes},
 \usepackage{mathtools}
 \usepackage{pdflscape}
 \usepackage{tikz}
+\usepackage{forest,calc} %% tic-tac-toe diagram
+\usepackage{makecell}
 \usepackage{url}      %% Hyperlinks
 \usepackage{listings} %% Source code highlighting
 \lstset{
@@ -92,6 +94,11 @@ of Markov Decision Processes},
 %% Algortihms
 \usepackage{algorithm} % this does the figure environment
 \usepackage{algpseudocode} % algorithmicx, this does the actual algs
+\algnewcommand\algorithmicinput{\textbf{\textsc{Input}:} }
+\algnewcommand\Input{\State \algorithmicinput}
+\algnewcommand\algorithmicoutput{\textbf{\textsc{Output}:} }
+\algnewcommand\Output{\State \algorithmicoutput}
+
 
 %% Theorems
 \theoremstyle{definition}
@@ -112,7 +119,19 @@ of Markov Decision Processes},
 %% TikZ, initial states, clouds and such
 \usetikzlibrary{arrows,automata,shapes}
 
-
+%% TicTacToe
+\forestset{
+  make tab/.style args={#1:#2:#3/#4:#5:#6/#7:#8:#9}{%
+    content={%
+      \tabcolsep=.6\tabcolsep
+      \begin{tabular}{p{\widthof{x}}|p{\widthof{x}}|p{\widthof{x}}}
+        #1 & #2 & #3\\\hline#4&#5&#6\\\hline#7&#8&#9
+      \end{tabular}
+    }
+  },
+  label position r/.initial=right,
+  label position b/.initial=below
+}
 \begin{document}
 
 

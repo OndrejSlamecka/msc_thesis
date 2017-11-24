@@ -139,39 +139,73 @@ transition function is deterministic.
 
 \begin{definition}
     A {\em perfect-information extensive-form game}
-    is a tuple $G = (N, S, F, A, E, \Delta, \rho, u)$,
+    is a tuple $G = (N, S, s_0, F, A, E, \Delta, \rho, u)$,
     where
     \begin{itemize}
         \item $N \subseteq \mathbb{N}$ is a set of $n$ players,
             for $n \in \mathbb{N}$,
         \item $S$ is a set of states,
-        \item $F \subseteq S$ is a set of final (terminal) states,
+        \item $s_0 \in S$ is the initial state,
+        \item $F \subseteq S$ is a set of terminal states,
         \item $A$ is the set of actions,
         \item $E : S \to \mathcal{P}^+(A)$ is a function which tells the player
             which non-empty set of actions can be played in a given state,
-        \item $\Delta : S \times A \to A$ is the transition function,
-        \item $\rho : S \to N$ is a function which determines who plays in each state,
+        \item $\Delta : (S \setminus F) \times A \to A$ is the
+            transition function, defined such that game states cannot
+            repeat\footnote{
+                Technically there are no $s \in S, a \in E(s)$ such that
+                $\Delta(s,a) = s_0$, and for any two $s,s' \in S$ there
+                are no actions $a \in E(s), a' \in E(s')$ such that
+                $\Delta(s,a) = \Delta(s',a')$.
+            },
+        \item $\rho : S \to N$ is the function which determines who plays in each state,
             and finally
         \item $u = (u_1,\ldots,u_{n})$ is the tuple of
-            utility (reward) functions where each $u_i, i \in N$ is a function
-            $u_i : F \to \mathbb{R}$.
+            utility (payoff, reward) functions where each $u_i, i \in N$
+            is a function $u_i : F \to \mathbb{R}$.
     \end{itemize}
 \end{definition}
 
-TODO: there may be some more conditions I didn't realize in the definitions, check
-ia168
-
-Game starts in a distinguished state $s_0$ and players take turns until
-a terminal state (in $F$) reached. In a turn a player in state $s$ chooses
-action $a$ from $E(s)$ and the action leads to state $\Delta(s,a)$.
-If the state $\Delta(s,a)$ is terminal, then every player $i$ receives
-the reward $u_i(\Delta(s,a))$.
-
-A common choice of the utility function is $+1, 0, -1$ for victory, draw
-and loss, respectively.
+Game starts in state $s_0$ and players take turns until
+a terminal state (in $F$) is reached. In a turn a player in state $s$
+chooses action $a$ from $E(s)$ and the action leads to state
+$\Delta(s,a)$.  If the state $\Delta(s,a)$ is terminal, then every
+player $i$ receives the reward $u_i(\Delta(s,a))$ and the game ends.
 
 \begin{example}
+A common choice of the utility function is $+1, 0, -1$ for victory, draw
+and loss, respectively. \autoref{fig:example_game} depicts such a game
+in a standard form -- using a tree.
+There are two players,
+the nodes represent game states, leafs are the final states.
+The root of the tree is the initial state.
+Actions are given implicitly by choice of the next node.
+Functions $E$ and $\Delta$ are given by the drawn edges.
+$\rho$ is given by the color of the nodes
+and the payoff function is represented by a tuple in each leaf.
+
+
+\begin{figure}[ht]
+\begin{center}
+\begin{tikzpicture}
+\tikzset{
+solid node/.style={circle,draw,inner sep=1.5,minimum size=10pt,fill=black},
+hollow node/.style={circle,draw,inner sep=1.5,minimum size=10pt}
+}
+
+\node(0)[solid node]{}
+    child{node[hollow node,label=below:{$(1,1)$}]{}}
+    child{node[hollow node]{}
+        child{node[solid node,label=below:{$(-1,1)$}]{}}
+        child{node[solid node,label=below:{$(1,-1)$}]{}}
+    };
+\end{tikzpicture}
+\end{center}
+\caption{An example of a game.}
+\label{fig:example_game}
+\end{figure}
 \end{example}
+
 
 \begin{definition}
     A {\em strategy} of player $i$ in a game $G$ is a function
@@ -186,17 +220,19 @@ optimize for their goals. A goal may be to maximize the player's reward,
 another goal may be to get a higher score than the opponents.
 
 \begin{example}
-    \label{example_goals}
-    In the game below let Alice be player 1 and Bob player 2.
+    In \autoref{fig:goal_opt} let Alice be player 1 and Bob player 2.
     There is a single turn made by Alice in the black node.
 If her goal is to beat Bob she will pick the left node.
 If her goal is to maximize her profit she will choose the right one.
+\end{example}
 
-    \begin{center}
+
+\begin{figure}[ht]
+\begin{center}
 \begin{tikzpicture}
 \tikzset{
-solid node/.style={circle,draw,inner sep=1.5,fill=black},
-hollow node/.style={circle,draw,inner sep=1.5}
+solid node/.style={circle,draw,inner sep=1.5,minimum size=10pt,fill=black},
+hollow node/.style={circle,draw,inner sep=1.5,minimum size=10pt}
 }
 
 \node(0)[solid node]{}
@@ -204,12 +240,13 @@ hollow node/.style={circle,draw,inner sep=1.5}
     child{node[hollow node,label=below:{(5,10)}]{}};
 \end{tikzpicture}
 \end{center}
-\end{example}
+\caption{A single turn, two player game.}
+\label{fig:goal_opt}
+\end{figure}
 
-For simplicity we restrict
-ourselves to two player games in the following text unless otherwise
-noted.
-
+In the following text
+we restrict ourselves to two player games in which players alternate in
+taking actions.
 
 \subsection{Zero-sum games and minimax}
 
@@ -218,7 +255,7 @@ There are plenty of examples of such games, e.g. Chess, Go, which makes
 them an important subject of study.
 
 \begin{definition}
-    Let $G = (N, S, F, A, E, \Delta, \rho, u)$ be a game.
+    Let $G = (N, S, s_0, F, A, E, \Delta, \rho, u)$ be a game.
     $G$ is said to be {\em zero-sum} if the rewards always sum to zero,
     that is $\sum_{i \in N} u_i(s) = 0$ for all $s \in F$.
 \end{definition}
@@ -236,47 +273,108 @@ von Neumann.}.
 
 The {\em minimax algorithm} computes the value of each leaf in a game
 tree assuming the opponent tries to harm the player as much as
-possible. That is if player $0$ is computing which turn to play,
+possible. That is if player $1$ is computing which turn to play,
 she uses the fact that she can maximize her profit in her future turns,
-but assumes player $1$ will try to minimize it.
+but assumes player $2$ will try to minimize it.
 After all options are computed in this alternating manner,
 player $1$ plays the action going into the subtree with the highest value node.
 
-\autoref{negamax}, the {\em negamax algorithm}, is a minor simplification
-of minimax.
-Instead of
-alternating between maximization and minimization the algorithm always
-maximizes but alters the sign of the value in each step. One can see
-this is equivalent to minimax in zero-sum games.
-The $[1,-1][player]$ part of
-\autoref{negamax} returns 1 for player 0 but $-1$ for player 1.
-We denote $u'$ the payoff function defined as $u'(f) = u_1(f)$ if
-player $1$ wins in $f$, and as $u'(f) = -u_2(f)$ if player $2$ wins in
-$f$.
+Now we use the zero-sum property and our assumption of alternating turns
+to simplify the algorithm for zero-sum games in two steps.
 
+First, only a single payoff function can be used,
+let it be $u_1$. Now higher values mean player 1 is winning and lower
+values that player 2 is winning.
+Thus player 1 maximizes in her turns, expects
+player 2 to minimize in his turns.
+Player 2 minimizes in his turns, expects
+player 1 to maximize in her turns.
+
+Second, instead of alternating between maximization and minimization an algorithm
+can always maximize if it alters the sign of the value in each step.
+
+These simplifications result in \autoref{negamax}, the {\em negamax
+algorithm}.
+Player 1 gets the value by evaluating
+\textsc{Negamax}$($state$, 0)$,
+player 2 gets the value by evaluating $-$\textsc{Negamax}$($state$, 1)$.
+
+An example execution of the algorithm can be seen on a game of
+tic-tac-toe in \autoref{fig:negamax}.
+X is the first player, O is the second player. At the beginning X can
+place her mark in the middle of the board and win, or place it at the
+bottom and lose. The left branch has value 1, the right branch has value
+$-1$.
+
+% I read about the topic here:
 % http://www.hamedahmadi.com/gametree/#negamax
+% https://en.wikipedia.org/wiki/Minimax
+% https://github.com/soratobukuroneko/tictactoe-negamax/blob/master/tictactoe.c
+% https://neverstopbuilding-dropblog.herokuapp.com/minimax
 
 \begin{algorithm}
 \caption{Negamax}
 \label{negamax}
 \begin{algorithmic}
-\Function{negamax}{$node, player$}
-    \If{$node \in F$, i.e. a leaf in the tree}
-    \State \Return $[1,-1][player] \cdot u'(node)$
+\Input Two-player zero-sum game\footnote{The $player$
+numbers are shifted down by one for easy manipulation.}
+$(N, S, s_0, F, A, E, \Delta, \rho, u)$, where players
+ alternate in taking actions.
+\Output Maximum payoff for player 0, its negation for player 1.
+\Function{negamax}{$state, player$}
+    \If{$state \in F$, i.e. a leaf in the game tree}
+    \State \Return\footnote{The
+    $[1,-1][player]$ part returns 1 for player 0 but $-1$ for player 1.}
+        $[1,-1][player] \cdot u_1(state)$
         otherwise
     \EndIf
     \State \Return $\max \{ - \Call{negamax}{child, 1 - player}
-        \mid child \text{ of } node \}$
+        \mid
+        child \text{ of } state\footnote{Precisely
+        for all enabled actions $a \in E(state)$ every $child \in \Delta(state, a)$.}
+    \}$
 \EndFunction
 \end{algorithmic}
 \end{algorithm}
 
-% https://github.com/soratobukuroneko/tictactoe-negamax/blob/master/tictactoe.c
-
-TODO: invocation
-% https://en.wikipedia.org/wiki/Negamax
-
-TODO: example execution on tic tac toe
+\begin{figure}
+% https://tex.stackexchange.com/questions/139782/creating-tic-tac-toe-boards-with-latex-tikz
+\begin{forest}
+  TTT/.style args={#1:#2}{
+    make tab/.expanded=\forestove{content},
+    label={\pgfkeysvalueof{/forest/label position #1}:$#2$}
+  },
+  TTT*/.style={
+    make tab=::/::/::,
+    content/.expand once=%
+    \expandafter\vphantom\expandafter{\romannumeral-`0\forestov{content}},
+    draw=none,
+    append after command={(\tikzlastnode.north) edge (\tikzlastnode.south)},
+    for descendants={before computing xy={l*=1.2}},
+  },
+  th/.style=thick,
+  for tree={
+    node options=draw,
+    inner sep=+0pt,
+    parent anchor=south,
+    child anchor=north,
+    l sep=0.7cm,
+    s sep=1.7cm,
+  }
+%
+ [o:o:x/x::o/x::o, TTT=r:{\text{x's turn}, player = 0},
+ [o:o:x/x:x:o/x::o, TTT=b:{\makecell[c]{(-1)\cdot 1 \\ \text{x wins}}},
+   edge label={node[midway,left,font=\scriptsize]{$\cdot (-1)$}}]
+   [o:o:x/x::o/x:x:o, TTT=r:{\text{o's turn}, player = 1},
+   edge label={node[midway,right,font=\scriptsize]{$\cdot (-1)$}},
+   [o:o:x/x:o:o/x:x:o, TTT=b:{\makecell[c]{1\cdot (-1) \\ \text{o wins}}},
+   edge label={node[midway,right,font=\scriptsize]{$\cdot (-1)$}}]
+ ]
+]
+\end{forest}
+\caption{Negamax algorithm applied to tic-tac-toe.}
+\label{fig:negamax}
+\end{figure}
 
 For larger games a variation called {\em minimax (negamax) search} is used, which
 performs the computation only to a limited depth, and then uses
@@ -285,13 +383,13 @@ a heurisic to evaluate the last node it processes (unless it is a leaf).
 \subsection{Solving with MCTS}
 
 From the negamax algorithm in the previous section there is an easy step
-to solving games with MCTS. \autoref{mcts_negamax} is an
+to solving games with MCTS. \autoref{alg:mcts_negamax} is an
 implementation of the Backup function in UCT for finding a good
 action a player should take in a zero-sum game.
 
 \begin{algorithm}
 \caption{Negamax MCTS Backup}
-\label{mcts_negamax}
+\label{alg:mcts_negamax}
 \begin{algorithmic}
 \Function{backup}{$v, \Delta$}
     \While{$v$ is not $null$}
@@ -304,13 +402,20 @@ action a player should take in a zero-sum game.
 \end{algorithmic}
 \end{algorithm}
 
-TODO: Example execution?
-
 % http://tim.hibal.org/blog/alpha-zero-how-and-why-it-works/
 
 In comparison with minimax search MCTS may ignore unimportant
 branches of the game tree and instead explore in greater detail the more
 promising branches.
+
+For example when solving a tic-tac-toe game the algorithm starts with
+the current board state in the root of the tree and then proceeds to
+add the immediate turns into the tree. They are explored with random
+rollouts and the algorithm proceeds to the parts of tree which
+either seem to lead victory or which are unsufficiently explored, the
+balance between exploitation and exploration is dependent on the choice of
+the constant in the tree heuristic. See \parencite{mcts_ttt} for an
+elaborate explanation with illustrations.
 
 An important theoretical result is
 that MCTS converges to minimax \parencite{Kocsis},
@@ -318,7 +423,7 @@ so eventually, after a lot of MCTS iterations, there is a negligible
 difference between the results of the two methods and they pick the same
 next move. However in
 applications we want to know when to use minimax (\autoref{negamax}) and
-when to use UCT (\autoref{uct} with \autoref{mcts_negamax}) without
+when to use UCT (\autoref{uct} with \autoref{alg:mcts_negamax}) without
 iterating UCT for a long time.
 
 While UCT achieved success in many games \parencite{mcts_survey},
