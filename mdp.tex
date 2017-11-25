@@ -9,16 +9,13 @@ given MDP satisfies a given property) with special focus on Bounded
 Real-Time Dynamic Programming which will be used in later chapters.
 
 It is assumed the reader is familiar with basic notions of probability
-theory, namely probability function, distribution and random variable.
-We use $P(E)$ to denote the probability of an event $E$ and
-$\distribution{S}$ to denote the set of probability distributions on a set $S$.
-
-As we work with probabilities over uncountable sets the reader should be
-familiar with measure-theoretic treatment of probability (or at least
-ready to believe their intuition built with basic probability works here).
-Developing the theory here would significantly extend the text while
-providing little value so we instead refer the reader to
-\parencite{probability}.
+theory, namely those of {\em probability space} and {\em probabilty measure}.
+Function $f : X \to [0,1]$ is a {\em probability distribution} over
+set $X$ if $\sum_{x \in X} f(x) = 1$.
+Usually the probability space is implicitly known and we use $P(E)$ to
+denote the probability of an event $E$. $\distribution{S}$ denotes the
+set of probability distributions on a set $S$.  We refer the reader to
+\parencite{probability} for a proper treatment of probability theory.
 
 \section{Markov Chains}
 
@@ -209,8 +206,9 @@ and if there is a path between every two $s, s' \in S'$
 using only actions in $A'$.
 \end{definition}
 
-TODO: potrebujeme definovat maximal end component? Pokud ano, tak staci
-zminit, ze jako usporadani uvazujeme mnozinove usporadani po slozkach.
+TODO:
+%potrebujeme definovat maximal end component? Pokud ano, tak staci
+%zminit, ze jako usporadani uvazujeme mnozinove usporadani po slozkach.
 
 \begin{figure}[ht]
 \begin{center}
@@ -257,24 +255,26 @@ What happens once the strategy is fixed? The MDP becomes a Markov chain.
 This can be seen in the examples, e.g. if the strategy is to always
 choose $b$, the MDP from \autoref{ex_mdp} becomes the MC from
 \autoref{ex_mc}.
+Importantly when a strategy is fixed there is a probability
+measure\footnote{While this may be intuitive it is not a trivial
+statement, see Theorem 2.4 in \parencite{denumerable_mc} for a formal
+treatment.} denoted $P^\sigma_{\mathcal{M},s}$ over the set of
+$IPaths$ with an initial state $s$.
 
-For very small MDPs this gives the first algorithm for evaluating their
-properties: for every strategy reduce the MDP to a Markov chain and evaluate the
-property using known Markov chain algorithms, then aggregate the
-results\footnote{The idea of this naive method can be significantly improved and instead
-of exploring a vast amount of strategies only a small portion of
-reasonably good strategies is explored \parencite{smc}.}.
-
-
-% http://www.lsv.fr/axes/VASCO/gdt/haddad_gdt_20012016.pdf
+For very small MDPs this gives the first algorithm for evaluating
+their properties: for every strategy reduce the MDP to a Markov chain
+and evaluate the property using known Markov chain algorithms, then
+aggregate the results\footnote{The idea of this naive method can be
+significantly improved and instead of exploring a vast amount of
+strategies only a small portion of reasonably good strategies is
+explored \parencite{smc}.}.
 
 \noindent {\bf Observability of MDP.}
 One can distinguish between various levels of knowledge about an MDP,
-usually depending on the source of the model.
-In partially observable MDPs the information about $\Delta$ may not be
-available (but algorithms for solving the reachability
-problem in such MDPs exist too \parencite{atva14}). This thesis deals
-only with fully observable MDPs.
+usually depending on the source of the model.  In partially observable
+MDPs the information about $\Delta$ may not be available (but
+reachability can still be effectively solved \parencite{atva14}). This
+thesis is concerned with fully observable MDPs.
 
 
 \section{Verification}
@@ -287,9 +287,16 @@ the system to verify the property.
 In our case the systems are modelled as Markov decision processes and
 the properties are concerned about maximum probability of reaching a state.
 
-\noindent \textbf{Reachability probability.}
+To simplify notation, in this section we often refer to a fixed MDP $\mathcal{M} =
+(S,A,E,\Delta)$, its initial state $s_0$, and a set of target states $F$.
 
-$P^\sigma_{\mathcal{M},s}(\lozenge F)$
+\noindent \textbf{Reachability probability.}
+Let $\lozenge F$ be the set of all infinite paths that reach a state in $F$.
+In this thesis we are concerned with maximizing the reachability
+probability $P^\sigma_{\mathcal{M},s_0}(\lozenge F)$ over the set of all
+strategies $\sigma$.
+We define the {\em value function} $V(s) = \sup_{\sigma}
+P^\sigma_{\mathcal{M},s}(\lozenge F)$ for every state $s \in S$.
 
 Importantly there is always a memoryless strategy maximizing the
 reachability probability. Puterman \parencite{puterman} proves this for
@@ -299,9 +306,10 @@ is zero everywhere, except when entering a target state it gives reward 1
 and when leaving a target state it gives reward -1. TODO: Check this is
 right.
 
-A description of the most common approaches to computing Pr... follows.
-Standard algorithms Value Iteration and Strategy Iteration are shown
-and later we describe BRTDP.
+In this section we describe value iteration and strategy iteration,
+which are standard algorithms for computing the maximum probability of
+reaching a state in F. In the next section a more involved algorithm
+called BRTDP is described.
 
 One approach we do not explain is formulating the problem as a system
 linear equations and solving it. The solution is precise and has
@@ -309,24 +317,27 @@ guaranteed correctness but the computation quickly becomes expensive as
 the model grows in size.  See \parencite{forejt} for a description of
 this method.
 
+TODO: page break?
+
 \subsection{Value Iteration}
 
 Value iteration (in its variation for computing expected maximum rewards) is a
 dynamic programming algorithm which was first described by Richard
-Bellman (known for introducing the term dynamic programming) in 1957
-\parencite{bellman}.
+Bellman\footnote{Known for introducing the term dynamic programming.}
+\parencite{bellman} in 1957. We present its variation for computing the maximum
+reachability probability.
 
 Before showing the algorithm we first note that it will need to
 process all states. However, the values in some states are quite easy to
 compute and a preprocessing will allow for reduction of the
 state space.
-
-These easy states are in set $Z$
-of {\em zero states} or set $F'$ of {\em extended target states}
-for given MDP $\mathcal{M}$. These are states $z
-\in Z$ such that for any $\sigma \in \Sigma$ it holds that
-$P^\sigma_{\mathcal{M},z}(\lozenge F) = 0$,
-and $f \in F$ such that ... TODO.
+These easy states are in set $Z \subseteq S$
+of {\em zero states} or set $F' \subseteq S$ of {\em extended target states}.
+States $z \in Z$ are such that $P^\sigma_{\mathcal{M},z}(\lozenge F) = 0$ holds,
+and states $f \in F'$ are such that $P^\sigma_{\mathcal{M},f}(\lozenge F) = 1$
+holds, both for any strategy $\sigma$.
+Their computation is rather straightforward \parencite{forejt} (Section
+4.1). Note that $F \subseteq F'$.
 
 The main idea of value iteration is materialized in the following
 recurrence relation for newly introduced variables $x_s^n, s \in S, n
@@ -334,8 +345,8 @@ recurrence relation for newly introduced variables $x_s^n, s \in S, n
 \[
 x_s^n =
 \begin{cases}
-    1 & \text{if }s \in F \cup F' \\
-    0 & \text{if }s \in Z \lor (s \not \in F \land n = 0) \\
+    1 & \text{if }s \in F' \\
+    0 & \text{if }s \in Z \lor (s \not \in F' \land n = 0) \\
     \max\limits_{a \in E(s)} \sum\limits_{s' \in S} \Delta(s,a)(s') \cdot x_{s'}^{n-1}
     & \text{otherwise} % \text{if }s \in S \setminus (F \cup Z)
 \end{cases}
@@ -343,8 +354,9 @@ x_s^n =
 By computing $x^n$ for $n = 1,2,\ldots$ we gain increasingly precise
 estimate of the actual maximum reachability probability,
 formally $\lim_{n \to \infty} x^n_s = P_{\mathcal{M},s}(\lozenge F)$.
-TODO: prove (use Puterman's proof with reward $1$ when reaching target
-state, 0 otherwise).
+We refer to a proof of this statement in \parencite{puterman} with the
+same reduction as in the case of existence of memoryless optimal
+strategy.
 
 This recurrence relation is now turned into a dynamic programming
 algorithm as shown in \autoref{vi}. Instead of iterating $n$ times the
@@ -385,6 +397,7 @@ second issue later with heuristic methods.
 
 \subsection{Strategy Iteration}
 
+TODO
 Strategy Iteration (also Policy Iteration).
 Describe origin
 How it works
