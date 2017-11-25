@@ -72,6 +72,9 @@ simplicity we do not draw the transitions with zero probability).
     \draw[->] (s0) -- (s1) node [midway, above] {0.5};
     \draw (s0) edge [->, loop below] node [midway, below] {0.25} (s0);
     \draw[->] (s0) -- (s2) node [midway, below left] {0.25};
+
+    \draw (s1) edge [->, loop right] node [midway, right] {1} (s1);
+    \draw (s2) edge [->, loop right] node [midway, right] {1} (s2);
 \end{tikzpicture}
 \end{example}
 
@@ -115,9 +118,9 @@ and the next state is chosen according to a distribution on states
 corresponding to this action.
 
 \begin{definition}
-A {\em Markov Decision Process} is a tuple $(S, A, E, \Delta)$, where
+A {\em Markov Decision Process} is a tuple $(S, s_0, A, E, \Delta)$, where
 $S$ is a finite set of states,
-%$s \in S$ is the initial state,
+$s_0 \in S$ is the initial state,
 $A$ is a finite set of actions,
 $E : S \to \powerset{A}$ gives the set of enabled actions in a state,
 and $\Delta : S \times A \to \distribution{S}$ is a partial transition
@@ -131,15 +134,18 @@ actions could just be renamed.
 
 \begin{example}
     \label{ex_mdp}
-    The MDP $(\{s_0, s_1, s_2\}, \{a\}, E, \Delta)$,
+    The MDP $(\{s_0, s_1, s_2\}, s_0, \{a\}, E, \Delta)$,
     where
-    $E(s_0) = \{a,b\}$, $E(s_1) = E(s_2) = \emptyset$,
+    $E(s_0) = \{a,b\}$, $E(s_1) \{c\}, E(s_2) = \{d\}$,
     and $\Delta(s_0, a) = \{(s_1, 1)\}$,
-    $\Delta(s_0, b) = \{(s_1, 0.5),$ $(s_2,0.25), (s_0,0.25)\}$
+    $\Delta(s_0, b) = \{(s_1, 0.5),$ $(s_2,0.25), (s_0,0.25)\}$,
+    $\Delta(s_1,c) = \{(s_1,1)\},
+    \Delta(s_2,d) = \{(s_2,1)\}$
     is depicted below.
     The edges labeled with letters denote the available actions
     and lead to smaller black dots, which mark the point of random
-    choice of the successor state.
+    choice of the successor state. With actions $c,d$ the black dots are
+    omitted and the transition probability 1 is understood implicitly.
 
     The actor making decisions should choose action $a$ if
     they want to get to $s_1$, or (possibly repeatedly) choose $b$ if
@@ -158,24 +164,29 @@ actions could just be renamed.
     \node[state] at (4,0) (s1) {$s_1$};
     \node[state] at (4,-1) (s2) {$s_2$};
 
+    \draw[<-] (s0) -- node[above] {} ++(-1cm,0);
+
     \draw (s0) edge [bend left, ->] node [midway, above] {$a$} (s0a);
     \draw (s0a) edge [bend left, ->] node [midway, above] {$1$} (s1);
     \draw (s0) edge [bend left, ->] node [midway, above] {$b$} (s0b);
     \draw[->] (s0b) -- (s1) node [midway, above] {0.5};
     \draw (s0b) edge [bend left, ->] node [midway, below] {0.25} (s0);
     \draw[->] (s0b) -- (s2) node [midway, below left] {0.25};
+
+    \draw (s1) edge [->, loop right] node [midway, right] {c} (s1);
+    \draw (s2) edge [->, loop right] node [midway, right] {d} (s2);
 \end{tikzpicture}
 
 \end{example}
 
 A standard use of Markov decision processes has been in areas where it
-is useful to operate with rewards. This definition will be useful later.
+is useful to operate with rewards.
 
 \begin{definition}
-If $(S, A, E, \Delta)$ is a Markov decision process,
+If $(S, s_0, A, E, \Delta)$ is a Markov decision process,
 %$a \in A, s, s' \in S$, $a \in E(s)$, $\Delta(s,a)(s') > 0$,
-and $R : S \times A \times S \to \mathbb{R}$ is a function,
-then $(S,A,E,\Delta,R)$ is a {\em Markov decision process with rewards}.
+and \linebreak $R : S \times A \times S \to \mathbb{R}$ is a function,
+then $(S, s_0, A,E,\Delta,R)$ is a {\em Markov decision process with rewards}.
 \end{definition}
 
 
@@ -204,11 +215,10 @@ if for every $s \in S', s' \in S, a \in A'$ it holds that
 $\Delta(s,a)(s') > 0 \implies s' \in S'$,
 and if there is a path between every two $s, s' \in S'$
 using only actions in $A'$.
-\end{definition}
 
-TODO:
-%potrebujeme definovat maximal end component? Pokud ano, tak staci
-%zminit, ze jako usporadani uvazujeme mnozinove usporadani po slozkach.
+An end component is {\em maximal} if it is maximal with respect to
+the point-wise ordering of subsets.
+\end{definition}
 
 \begin{figure}[ht]
 \begin{center}
@@ -271,10 +281,11 @@ explored \parencite{smc}.}.
 
 \noindent {\bf Observability of MDP.}
 One can distinguish between various levels of knowledge about an MDP,
-usually depending on the source of the model.  In partially observable
-MDPs the information about $\Delta$ may not be available (but
-reachability can still be effectively solved \parencite{atva14}). This
-thesis is concerned with fully observable MDPs.
+usually depending on the source of the model. For example $\Delta$ might
+not be known.
+%he information about $\Delta$ may not be available (but
+%reachability can still be effectively solved \parencite{atva14}).
+This thesis is concerned with fully observable MDPs.
 
 
 \section{Verification}
@@ -316,8 +327,6 @@ linear equations and solving it. The solution is precise and has
 guaranteed correctness but the computation quickly becomes expensive as
 the model grows in size.  See \parencite{forejt} for a description of
 this method.
-
-TODO: page break?
 
 \subsection{Value Iteration}
 
@@ -413,28 +422,53 @@ the objective of finding the best-profit strategy
 \parencite{profit_brtdp} the algorithm was adapted to the problem of
 verification \parencite{atva14}.
 
-Let us define the {\em value function} $V : S \times A \to
-[0,1]$ for all $s \in S, a \in E(s)$ as follows
+As in the previous section we refer to a fixed MDP $\mathcal{M} =
+(S,A,E,\Delta)$, its initial state $s_0$, and a set of target states
+$F$. Further we fix $\epsilon$, an argument of the algorithm which sets
+the required precision (maximum allowed distance of the result of the
+algorithm from the correct value).
 
+Recall we have a unary value function defined
+and for use in the algorithm let us define the binary {\em value function}
+$V : S \times A \to [0,1]$ for all $s \in S$ and $a \in E(s)$ as follows
 \[
     V(s,a) \coloneqq \sum_{s' \in S} \Delta(s,a)(s')V(s')
 \]
-(TODO: Define $\mathcal{M}$ which is used further)
-BRTDP is learning $V$ by computing its lower and upper bounds $L, U$
-through simulated runs of $\mathcal{M}$ from the given initial state.
-TODO: CONTINUE explanation
-TODO: Assume no MECs besides trivial
+BRTDP is learning $V$ by monotonically tightening its lower and upper
+bounds $L, U : S \times A \to [0,1]$ during simulated runs of
+$\mathcal{M}$ from the given initial state.
+When $\max_{a \in E(s_0)} U(s_0, a) - \max_{a \in E(s_0)} L(s_0, a) < \epsilon$
+the algorithm terminates.
+
+We start with an important assumption, that
+that $\mathcal{M}$ does not contain any end component
+besides two trivial end components, one containing only the target state
+1 with $F = \{1\}$, the other only the state 0 with $V(0) = 0$.
+
+With this assumption BRTDP can be implemented as \autoref{alg:brtdp},
+alternating between explore and update phases until it has sufficiently
+good knowledge about $V(s_0)$. In the exploration phase the algorithm
+samples a finite path from the initial state to one of states
+$\{1, 0\}$, each time using an action maximizing the upper bound.
+In the update phase the algorithm traverses the path backwards and
+performs the Bellman update (known from value iteration),
+using the best known bounds, i.e.
+$U(s) = \max_{a \in E(s)} U(s, a)$
+and
+$L(s) = \max_{a \in E(s)} L(s, a)$.
+BRTDP is approximately correct \parencite{atva14}, that is the actual
+probability lies within $L(s_0), U(s_0)$ and the bounds converge such
+that they are at most $\epsilon$ (for a given epsilon) far from each other.
+
 
 \begin{algorithm}
 \caption{BRTDP for MDPs without end components}
-\label{brtdp}
+\label{alg:brtdp}
 \begin{algorithmic}
 \State $U(s,a) \gets 1, L(s,a) \gets 1 \; \forall s \in S, a \in E(s)$
-\State $U(z,a) \gets 0, L(t,a') \gets 1
-    \; \forall z \in zero states, a \in E(z)
-    \; \forall t \in target states, a' \in E(t)$
+\State $U(0,a) \gets 0, L(1,a) \gets 1 \; \forall a \in A$
 \State $s \gets s_0$
-\While{max diff in initial is greater than epsilon}
+\While{$U(s_0) - L(s_0) < \epsilon$ }
     % explore
     \State \# Explore Phase
     \While{$s \not \in target \cup zero$}
@@ -449,23 +483,26 @@ TODO: Assume no MECs besides trivial
         \State $pop(\omega)$
         \State $a \gets pop(\omega)$
         \State $s \gets last(\omega)$
-        \State $U(s,a) \coloneqq \sum_{s' \in S} \Delta(s,a)(s')U(s')$
-        \State $L(s,a)\, \coloneqq \sum_{s' \in S} \Delta(s,a)(s')L(s')$
+        \State $U(s,a) \coloneqq \sum_{s' \in S} \Delta(s,a)(s') U(s')$
+        \State $L(s,a)\, \coloneqq \sum_{s' \in S} \Delta(s,a)(s') L(s')$
     \EndWhile
 \EndWhile
-\State \Return Action from $v_0$ to the best node (by some
-given metric).
+\State \Return $(U(s_0), L(s_0))$
 \end{algorithmic}
 \end{algorithm}
 
-TODO: Prove AC?
-
 \subsection*{BRTDP for MDPs with End Components}
-Unfortunately BRTDP is not guaranteed to converge when the MDP
-contains non-trivial end components.
+Unfortunately \autoref{alg:brtdp} is not guaranteed to converge
+when the MDP contains non-trivial end components.
 
 \begin{example}
-TODO: Describe why BRTDP is stuck here.
+    Below is an MDP with an end component
+    $(\{s_0, s_1\}, \{a,c\})$, and let $F = \{s_2\}$.
+    When BRTDP updates state $s_0$ or $s_1$ there is always a state (the
+    other one in the EC) which has upper bound 1. This way the upper
+    bound remains 1 after every iteration, even though the lower bound
+    is correctly $0.5$. The algorithm does not converge for $\epsilon <
+    0.5$.
 
 \begin{center}
 \begin{tikzpicture}
@@ -490,8 +527,27 @@ TODO: Describe why BRTDP is stuck here.
 \end{center}
 \end{example}
 
-TODO: Briefly explain how the algorithms gets modified to handle end
-components, but not much details and no proofs.
+Fortunately there is an on-the-fly method\footnote{The knowledge we have
+about the MDP during computation suffices -- knowing the whole MDP is
+not necessary.}
+for resolving the problem in BRTDP
+\parencite{atva14}, which we present to an extent important for our
+future use of BRTDP.
+
+During the explore phase the algorithm periodically (every $k_i$
+steps) creates an auxiliary MDP based on the states visited so far and
+their neighbours. The algorithm then identifies maximal ECs in this auxiliary
+MDP.
+
+If an end component is found it is collapsed, i.e. the states are merged into a
+single state and functions $E, \Delta$ are naturally transformed to work
+the same way in the modified MDP.
+
+Finally the merged state has its $U, L$ updated for every action in the
+end component. If there was a target state in the end component then the
+merged state is marked as a target state. If there was no target state and
+there is no outgoing action from the merged state then it is marked as a
+zero state.
 
 \subsection*{Variants of BRTDP}
 When in state $s$ and chosen action $a$,
