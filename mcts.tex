@@ -93,8 +93,8 @@ in some specific situations.
 
 \autoref{uct} is implementation of the general \autoref{mcts}. As a
 minor simplification the algorithm expects an MDP with rewards
-$(S,s_0,A,E,R)$, such that a reward is paid out only when a terminal
-state is reached.
+$(S,s_0,A,E,R)$ and a marked set of terminal state, such that a reward
+is paid out only when a terminal state is reached.
 
 Every tree node $v$ has information about its corresponding state
 ($v.state$), the action which lead to it ($v.action$), the number of
