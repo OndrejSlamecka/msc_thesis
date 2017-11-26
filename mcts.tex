@@ -59,7 +59,7 @@ in \autoref{mcts}.
     \State Let $v_0$ be the root of the MCTS tree, with $v_0.state = s_0$.
     \While{within computational budget}
         \State $v_l \gets \Call{TreePolicy}{v_0}$
-        \State $\Delta \gets \Call{DefaultPolicy}{v_l}$
+        \State $\Delta \gets \Call{Rollout}{v_l}$
         \State $\Call{Backup}{v_l, \Delta}$
     \EndWhile
     \State \Return Action from $v_0$ to the best node (by some
@@ -71,7 +71,8 @@ in \autoref{mcts}.
 \section{Upper Confidence Bound for Trees}
 
 The most common implementation of the general scheme is {\em Upper
-Confidence Bound for Trees} (UCT) which utilizes formula \ref{UCB}.
+Confidence Bound for Trees} (UCT) which utilizes formula \ref{UCB} to
+select nodes in the tree traversal.
 In this formula $\overline{X}_i$ represents the expected outcome
 from node $i$, $n$ is the number of visits to all nodes, $n_i$ is the
 number of visits to node $i$. $C$ is an arbitrary constant.
@@ -81,36 +82,88 @@ number of visits to node $i$. $C$ is an arbitrary constant.
 UCT_i = \overline{X}_i + C \sqrt{ \frac{2 \ln n}{n_i} }
 \end{equation}
 
-Selecting a tree node which maximizes this value makes the algorithm balance
-between exploitation of known good strategies and exploration of new.
+The tree is traversed greedily, in every step a node with maximal UCT
+value is chosen. Note that unvisited nodes have their UCT value equal to $\infty$.
+Importantly when a node $j$ is visited, its sibling's $i$ UCT value is
+increased as $n$ increased but $n_i$ did not -- this contributes to
+balance between exploitation of known good strategies and exploration of new.
 Constant $C$ instructs the algorithm how much weight to give to
-exploration. TODO: Mention the result of Kocsis and Sepe... which proves
-$1/\sqrt(2)$ to be optimal under some circumstances.
+exploration. See \parencite{improved_mc} for insights into choice of $C$
+in some specific situations.
 
-\autoref{uct} is implementation of the general \autoref{mcts}. As UCT is
-the most common type of MCTS algorithm, the terms are often used
-interchangeably in literature.
+\autoref{uct} is implementation of the general \autoref{mcts}. As a
+minor simplification the algorithm expects an MDP with rewards
+$(S,s_0,A,E,R)$, such that a reward is paid out only when a terminal
+state is reached.
+
+Every tree node $v$ has information about its corresponding state
+($v.state$), the action which lead to it ($v.action$), the number of
+times it has been visited so far ($v.visits$), and the reward which has
+been collected after traversing through it ($v.q$, the Q refers to
+Q-learning).
+
+TODO: More explanation. e.g. why does it return what it returns,
+what does q/n mean...
 
 \begin{algorithm}
     \caption{Upper Confidence Bound for Trees}
 \label{uct}
 \begin{algorithmic}
 \Function{UCT}{$s_0$}
-    \State TODO
     \State Let $v_0$ be the root of the MCTS tree, with $v_0.state = s_0$.
     \While{within computational budget}
         \State $v_l \gets \Call{TreePolicy}{v_0}$
-        \State $\Delta \gets \Call{DefaultPolicy}{v_l}$
-        \State $\Call{Backup}{v_l, \Delta}$
+        \State $r \gets \Call{Rollout}{v_l}$
+        \State $\Call{Backup}{v_l, r}$
     \EndWhile
-    \State \Return Action from $v_0$ to the best node (by some
-    given metric).
+    \State \Return $\Call{BestChild}{v_0, 0}.action$
+\EndFunction
+
+\Function{TreePolicy}{v}
+    \While{$v$ is not terminal}
+        \If{$v$ is not fully expanded}
+            \State $\Call{Expand}{v}$
+        \Else
+            \State $v \gets \Call{BestChild}{v, C}$
+        \EndIf
+    \EndWhile
+\EndFunction
+
+\Function{Expand}{v}
+    \State choose an untried action $a$ from $A(v.state)$
+    \State add a new child $v'$ to $v$,
+        $v'.state = \Delta(v.state, a),
+        v'.action = a$
+\EndFunction
+
+\Function{BestChild}{v, c}
+    \State \Return
+    $\argmax\limits_{v' \text{ a child of } v}
+    \frac{v'.q}{v'.visits} +
+    c\sqrt{\frac{2\ln v.visits}{v'.visits}}$
+\EndFunction
+
+\Function{Rollout}{s}
+    \While{$s$ is not terminal}
+        \State choose $a \in E(s)$ uniformly at random
+        \State $s \gets \Delta(s,a)$
+    \EndWhile
+\EndFunction
+
+\Function{Backup}{s}
+    \While{$v$ is not null}
+        \State $v.visits \gets v.visits + 1$
+        \State $v.q \gets v.q + r$
+        \State $v \gets$ parent of $v$
+    \EndWhile
 \EndFunction
 \end{algorithmic}
 \end{algorithm}
 
-
 TODO: Example execution.
+
+As UCT is the most common type of MCTS algorithm, the terms UCT and MCTS
+are often used interchangeably in literature.
 
 \section{Solving Games}
 
@@ -118,19 +171,17 @@ In this section a brief introduction to game theory is given, starting
 with definitions of games, strategies and solutions to games. We
 proceed by presenting the standard {\em minimax} algorithm, then showing
 how MCTS can be used to solve games and how it compares with minimax.
-Lastly we show how MCTS is used to play the game of Go, which has been a
-fruitful subject of research.
+Lastly we briefly compare the application of MCTS to Go and Chess.
 Observing where it performs good and where it does not provides insight
-into MCTS and is a useful starting point for understanding the results
+the algorithm and it is a useful starting point for understanding the results
 of evaluation in \autoref{ch_evaluation}.
 
 For precise understanding of the model of games we present the following
-definition.
-The perfect-information in games corresponds to
-full observability in MDP.  The reader can notice other similarities
-with MDPs as well, for example games have states, final states, actions
-and enabled actions, as well as rewards. On the other hand the
-transition function is deterministic.
+definition.  The perfect-information in games corresponds to full
+observability in MDP.  The reader can notice other similarities with
+MDPs as well, for example games have states, actions and enabled
+actions, as well as rewards. On the other hand the transition function
+is deterministic in our definition.
 
 \begin{definition}
     A {\em perfect-information extensive-form game}

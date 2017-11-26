@@ -93,7 +93,7 @@ of Markov Decision Processes},
 
 %% Algortihms
 \usepackage{algorithm} % this does the figure environment
-\usepackage{algpseudocode} % algorithmicx, this does the actual algs
+\usepackage[noend]{algpseudocode} % algorithmicx, this does the actual algs
 \algnewcommand\algorithmicinput{\textbf{\textsc{Input}:} }
 \algnewcommand\Input{\State \algorithmicinput}
 \algnewcommand\algorithmicoutput{\textbf{\textsc{Output}:} }
@@ -110,6 +110,7 @@ of Markov Decision Processes},
 \newcommand{\powerset}[1]{\mathcal{P}(#1)}
 \newcommand{\distribution}[1]{\mathcal{D}(#1)}
 \DeclareMathOperator{\last}{last}
+\DeclareMathOperator*{\argmax}{\arg\!\max}
 
 %% Some useful commands for pseudocode
 \algdef{SE}[DOWHILE]{Do}{doWhile}{\algorithmicdo}[1]{\algorithmicwhile\ #1}%

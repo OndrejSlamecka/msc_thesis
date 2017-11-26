@@ -13,7 +13,7 @@ These algorithms can be altered by changing the tree node selection
 heuristic. We suggest and evaluate two formulas, UCB and VCB. Here $U_i$
 is the known upper bound (of the sought probability) in the state
 corresponding to the tree node $i$, $n_i$ is the number of visits of the
-node (TODO: not state?) and $n$ is the number of iterations (visits of
+node and $n$ is the number of iterations (visits of
 the root node).
 \begin{equation*}
     UCB_i = U_i + C \sqrt{ \frac{2 \ln n}{n_i} }
@@ -62,14 +62,14 @@ more relevant for maximizing the sought probability.
     \State Let $v_0$ be the root of the MCTS tree, with $v_0.state = s_0$.
     \While{$U(s_0) - L(s_0) > \epsilon$}
         \State $v_l \gets \Call{TreePolicy}{v_0}$
-        \State $\Delta \gets \Call{DefaultPolicy}{v_l}$
+        \State $\Delta \gets \Call{Rollout}{v_l}$
         \State $\Call{Backup}{v_l, \Delta}$
     \EndWhile
     \State \Return Action from $v_0$ to the best node (by some
     given metric).
 \EndFunction
 
-\Function{DefaultPolicy}{$s$}
+\Function{Rollout}{$s$}
 \EndFunction
 
 \Function{TreePolicy}{$s$}
