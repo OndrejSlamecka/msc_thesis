@@ -11,10 +11,13 @@ Real-Time Dynamic Programming which will be used in later chapters.
 It is assumed the reader is familiar with basic notions of probability
 theory, namely those of {\em probability space} and {\em probabilty measure}.
 Function $f : X \to [0,1]$ is a {\em probability distribution} over
-set $X$ if $\sum_{x \in X} f(x) = 1$.
-Usually the probability space is implicitly known and we use $P(E)$ to
-denote the probability of an event $E$. $\distribution{S}$ denotes the
-set of probability distributions on a set $S$.  We refer the reader to
+a countable set $X$ if $\sum_{x \in X} f(x) = 1$.
+$\distribution{S}$ denotes the
+set of probability distributions on a set $S$.
+Usually the probability space $(\Omega, \mathcal{F}, P)$
+is implicitly known and we use $P(E)$ to
+denote the probability of an event $E$.
+We refer the reader to
 \parencite{probability} for a proper treatment of probability theory.
 
 \section{Markov Chains}
@@ -25,15 +28,20 @@ probabilistic models. In a Markov chain there are no decisions, only
 probabilities of transition.
 
 \begin{definition}
-    Let $S$ be a set of states.
-    A sequence of random variables $(X_i)^{\infty}_{i=0}$
-    is called a {\em discrete-time Markov chain},
+    Let $S$ be a finite set of states.
+    A sequence of random variables $(X_i : S \to \{0,1\})^{\infty}_{i=0}$
+    is called a {\em finite discrete-time time-homogenous Markov chain},
     if the probability of moving to a state is given only by the
-    current state, that is
+    current state, that is\footnote{The first condition ensures that
+    only the last state of ``history'' is considered, the second that
+    the length of the history does not matter either.}
     $P(X_{k+1} = s_{k+1} \mid X_k = s_k) =
-    P(X_{k+1} = s_{k+1} \mid X_k = s_k, X_{k-1} = s_{k-1},
-    \ldots, X_{1} = s_{1})$ for every $s_j \in S, 1 \leq j \leq k + 1$,
-    if the conditional probabilities are defined.
+    P(X_{k+1} = s_{k+1} \mid X_k = s_k, X_{k-1} = s_{k-1}, \ldots, X_{1} = s_{1})$
+    for every $s_k \in S$,
+    if the conditional probabilities are defined,
+    and
+    $P(X_{k+1} = s_{k+1} \mid X_k = s_k)
+    = P(X_{k} = s_{k} \mid X_{k-1} = s_{k-1})$.
 \end{definition}
 
 In many applications it is natural to have an initial state
@@ -48,7 +56,10 @@ simplicity we do not draw the transitions with zero probability).
     In this example $s_0$ is the initial state,
     $P(X_2 = s_1 \mid X_1 = s_0) = 0.5$,
     $P(X_2 = s_2 \mid X_1 = s_0) = 0.25$,
-    $P(X_2 = s_0 \mid X_1 = s_0) = 0.25$.
+    $P(X_2 = s_0 \mid X_1 = s_0) = 0.25$,
+    $P(X_{i+1} = s_1 \mid X_{i} = s_1) = 1$,
+    $P(X_{i+1} = s_2 \mid X_{i} = s_2) = 1$,
+    for all $i \in \mathbb{N}$.
 
 \hfill \break
 \centering
@@ -113,7 +124,7 @@ simplicity we do not draw the transitions with zero probability).
 \section{Markov Decision Processes}
 
 Markov decison processes are similar to Markov chains, except now an
-actor interacting with the process can in each state pick an action
+controller interacting with the process can in each state pick an action
 and the next state is chosen according to a distribution on states
 corresponding to this action.
 
@@ -134,20 +145,21 @@ actions could just be renamed.
 
 \begin{example}
     \label{ex_mdp}
-    The MDP $(\{s_0, s_1, s_2\}, s_0, \{a\}, E, \Delta)$,
+    The MDP $(\{s_0, s_1, s_2\}, s_0, \{a, b\}, E, \Delta)$,
     where
-    $E(s_0) = \{a,b\}$, $E(s_1) \{c\}, E(s_2) = \{d\}$,
+    $E(s_0) =$ \linebreak $\{a,b\}$,
+    $E(s_1) \{c\}, E(s_2) = \{d\}$,
     and $\Delta(s_0, a) = \{(s_1, 1)\}$,
     $\Delta(s_0, b) = \{(s_1, 0.5),$ $(s_2,0.25), (s_0,0.25)\}$,
     $\Delta(s_1,c) = \{(s_1,1)\},
-    \Delta(s_2,d) = \{(s_2,1)\}$
+    \Delta(s_2,d) = $ \linebreak $ \{(s_2,1)\}$
     is depicted below.
     The edges labeled with letters denote the available actions
     and lead to smaller black dots, which mark the point of random
     choice of the successor state. With actions $c,d$ the black dots are
     omitted and the transition probability 1 is understood implicitly.
 
-    The actor making decisions should choose action $a$ if
+    The controller making decisions should choose action $a$ if
     they want to get to $s_1$, or (possibly repeatedly) choose $b$ if
     they want to get to $s_2$ (the achievement of this goal is not
     guaranteed).
@@ -208,13 +220,13 @@ where this happens are called end components.
 An example end component is shown in \autoref{fig:non-triv-ec}.
 
 \begin{definition}[End component]
-Let $\mathcal{M} = (S, A, E, \Delta)$ be an MDP,
+Let $\mathcal{M} = (S, s_0, A, E, \Delta)$ be an MDP,
 let $S' \subseteq S$ and $A' \subseteq \bigcup_{s' \in S'} E(s')$.
 The pair $(S', A')$ is an {\em end component},
 if for every $s \in S', s' \in S, a \in A'$ it holds that
-$\Delta(s,a)(s') > 0 \implies s' \in S'$,
-and if there is a path between every two $s, s' \in S'$
-using only actions in $A'$.
+$$\Delta(s,a)(s') > 0 \implies s' \in S'$$
+and there is a path between every two $s, s' \in S'$
+using only actions $A'$.
 
 An end component is {\em maximal} if it is maximal with respect to
 the point-wise ordering of subsets.
@@ -269,23 +281,29 @@ Importantly when a strategy is fixed there is a probability
 measure\footnote{While this may be intuitive it is not a trivial
 statement, see Theorem 2.4 in \parencite{denumerable_mc} for a formal
 treatment.} denoted $P^\sigma_{\mathcal{M},s}$ over the set of
-$IPaths$ with an initial state $s$.
+$IPaths$ with an initial state $s$, which assigns to a set of paths the
+probability they will be traversed.
 
-For very small MDPs this gives the first algorithm for evaluating
-their properties: for every strategy reduce the MDP to a Markov chain
-and evaluate the property using known Markov chain algorithms, then
-aggregate the results\footnote{The idea of this naive method can be
-significantly improved and instead of exploring a vast amount of
-strategies only a small portion of reasonably good strategies is
-explored \parencite{smc}.}.
+%For very small MDPs this gives the first algorithm for evaluating
+%their properties: for every strategy reduce the MDP to a Markov chain
+%and evaluate the property using known Markov chain algorithms, then
+%aggregate the results\footnote{The idea of this naive method can be
+%significantly improved and instead of exploring a vast amount of
+%strategies only a small portion of reasonably good strategies is
+%explored \parencite{smc}.}.
 
-\noindent {\bf Observability of MDP.}
+\noindent {\bf Completness of information about an MDP.}
 One can distinguish between various levels of knowledge about an MDP,
-usually depending on the source of the model. For example $\Delta$ might
-not be known.
+usually depending on the source of the model.
+Complete information corresponds to knowing every part of the
+definition of an MDP, as opposed to limited information where the MDP
+can only be used as a black box from which can information be extracted
+by sampling.
+%For example $\Delta$ might
+%not be known.
 %he information about $\Delta$ may not be available (but
 %reachability can still be effectively solved \parencite{atva14}).
-This thesis is concerned with fully observable MDPs.
+This thesis is concerned only with MDPs with complete information.
 
 
 \section{Verification}
@@ -299,7 +317,7 @@ In our case the systems are modelled as Markov decision processes and
 the properties are concerned about maximum probability of reaching a state.
 
 To simplify notation, in this section we often refer to a fixed MDP $\mathcal{M} =
-(S,A,E,\Delta)$, its initial state $s_0$, and a set of target states $F$.
+(S,s_0,A,E,\Delta)$, and a set of target states $F$.
 
 \noindent \textbf{Reachability probability.}
 Let $\lozenge F$ be the set of all infinite paths that reach a state in $F$.
@@ -311,11 +329,11 @@ P^\sigma_{\mathcal{M},s}(\lozenge F)$ for every state $s \in S$.
 
 Importantly there is always a memoryless strategy maximizing the
 reachability probability. Puterman \parencite{puterman} proves this for
-reward maximization and we can use his proof with a simple reduction.
+reward maximization and we can use his proof with a simple
+reduction \parencite{verification_complexity}.
 For any MDP create an MDP with rewards, such that the reward function
 is zero everywhere, except when entering a target state it gives reward 1
-and when leaving a target state it gives reward -1. TODO: Check this is
-right.
+and then transitions only into a new sink state (with reward 0).
 
 In this section we describe value iteration and strategy iteration,
 which are standard algorithms for computing the maximum probability of
@@ -378,7 +396,7 @@ properties.
 \caption{Value Iteration}
 \label{vi}
 \begin{algorithmic}
-    \State $\forall s \in S,\; s \gets$ if $x \in F$ then $1$ else $0$
+    \State $\forall s \in S,\; s \gets 1$ if $x \in F$ else $0$
     \Do
         \ForEach{$s \in S \setminus (F \cup Z)$}
             \State $x_s \coloneqq
@@ -446,8 +464,8 @@ besides two trivial end components, one containing only the target state
 1 with $F = \{1\}$, the other only the state 0 with $V(0) = 0$.
 
 With this assumption BRTDP can be implemented as \autoref{alg:brtdp},
-alternating between explore and update phases until it has sufficiently
-good knowledge about $V(s_0)$. In the exploration phase the algorithm
+alternating between simulation and update phases until it has sufficiently
+good knowledge about $V(s_0)$. In the simulation phase the algorithm
 samples a finite path from the initial state to one of states
 $\{1, 0\}$, each time using an action maximizing the upper bound.
 In the update phase the algorithm traverses the path backwards and
@@ -456,9 +474,11 @@ using the best known bounds, i.e.
 $U(s) = \max_{a \in E(s)} U(s, a)$
 and
 $L(s) = \max_{a \in E(s)} L(s, a)$.
-BRTDP is approximately correct \parencite{atva14}, that is the actual
-probability lies within $L(s_0), U(s_0)$ and the bounds converge such
-that they are at most $\epsilon$ (for a given epsilon) far from each other.
+With the assumption of no non-trivial BRTDP converges almost surely to the correct value \parencite{atva14},
+that is
+the actual probability almost always lies between $L(s_0), U(s_0)$,
+and the bounds converge such that they are at most $\epsilon$ (for a
+given $\epsilon$) far from each other.
 
 
 \begin{algorithm}
@@ -467,19 +487,23 @@ that they are at most $\epsilon$ (for a given epsilon) far from each other.
 \begin{algorithmic}
 \State $U(s,a) \gets 1, L(s,a) \gets 1 \; \forall s \in S, a \in E(s)$
 \State $U(0,a) \gets 0, L(1,a) \gets 1 \; \forall a \in A$
-\State $s \gets s_0$
+\State $\omega \gets s_0$
 \While{$U(s_0) - L(s_0) < \epsilon$ }
-    % explore
-    \State \# Explore Phase
-    \While{$s \not \in target \cup zero$}
+    % simulation
+    \State \# Simulation Phase
+    \While{$last(\omega) \not \in \{0,1\}$}
         \State $a \gets$ sample uniformly from
-        \State $s \gets $ sample according
+           $\argmax\limits_{a \in E(last(\omega))}
+            U(last(\omega), a)$
+        \State $s \gets$\footnote{The implementation of this line may
+            vary, see Subsection ``Variants of BRTDP''}
+            sample according to $\Delta(last(\omega), a)$
         \State $\omega \gets \omega \; a \; s$
     \EndWhile
 
     % update
     \State \# Update Phase
-    \While{$s \neq s_0$}
+    \While{$\omega$ is not empty}
         \State $pop(\omega)$
         \State $a \gets pop(\omega)$
         \State $s \gets last(\omega)$

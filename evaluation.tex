@@ -286,7 +286,13 @@ resulting shape is shown in \autoref{fig:branching}.
     \label{fig:branching}
 \end{figure}
 
-TODO: Parallel composition.
+The second way to combine MDPs is parallel composition, which is done by
+using modules in the PRISM language. Each state of the composed MDP is a member
+of the product set of the sets of states of each of the modules. The
+choice of the next transition is non-deterministic, i.e. a strategy does
+not decide only which transition in a module to use but also which
+module to use (the strategy for the MDP can be viewed as a member of the
+product set of the set of strategies for each of the modules).
 
 \section{Experimental Comparison}
 
@@ -306,10 +312,14 @@ TODO: describe the machine and JVM configuration.
 
 TODO: set up an example
 runbenchmarks script so that anyone can verify our results right away.
+TODO: Our full results are stored in measurements attached with the thesis
 
+In \autoref{table:general_comparison} we can see
 TODO: Table 1, comparison of VI, BRTDP, BRTDP-UCB, MCTS-BRTDP on the
 PRISM suite (zeroconf, firewire-impl, wlan, coin, leader, mer).
 Note that MCTS-BRTDP is almost as fast as BRTDP.
+
+TODO: Somewhere where BMCTS is good?
 
 TODO: Table 2, comparison of VI, BRTDP, MCTS-BRTDP on branch-zeroconf,
 about 6 lines, 3 where BRTDP < MCTS-BRTDP < VI, and 3 where it is the
@@ -317,9 +327,30 @@ other way.
 Note that overall MCTS-BRTDP does
 not do the worst or the best anywhere, making it a universal choice.
 
-TODO: branch-<some other model>, composition-<two models?>
+Measurements show that the only method which works on at least some of the
+composition-zeroconf models is value iteration (specifically with $K = 40$ the
+model has 141 thousand states and VI solves it, regardless of choice of $N$).
+Other methods always run out of time.
+But on composition-wlan6 we observed that MCTS-BRTDP is the only method which
+can actually solve the problem. Moreover it takes only few thousands of states
+to be explored and a few seconds of running time.
 
 \begin{landscape}
+
+\begin{table}
+\begin{tabularx}{\textwidth}{ l  | c | c | c | c | c }
+     & VI          &  BRTDP, MAX-DIFF   & BRTDP-UCB & MCTS-BRTDP \\
+zeroconf $N=1, K=10$ &        204, &   \\
+zeroconf $N=x, K=z$ &        204, &   \\
+zeroconf $N=y, K=zz$ &        204, &   \\
+wlan6 &        204, &   \\
+coin... &        204, &   \\
+leader &        204, &   \\
+mer &        204, &   \\
+\end{tabularx}
+\caption{Comparison on standard PRISM models}
+\label{table:general_comparison}
+\end{table}
 
 \begin{table}
 \begin{tabularx}{\textwidth}{ l  | c | c  }
@@ -327,11 +358,18 @@ branch\_zeroconf &  BRTDP, MAX-DIFF   &   VI      \\
 $N=1, K=10$      &               46,  &       204, \\
 \end{tabularx}
 \caption{caption}
-\label{tab:branch_zconf}
+\label{table:branch_zconf}
 \end{table}
 
+%\begin{table}
+%\begin{tabularx}{\textwidth}{ l  | c | c
+       %&  BRTDP, MAX-DIFF   &       VI     &  MCTS-BRTDP   & BRTDP-UCB \\
+%wlan6  &             46,  &       204, &               & \\
+%\end{tabularx}
+%\caption{Composition models}
+%\label{tab:composition}
+%\end{table}
 \end{landscape}
-
 
 %\section{Model Structure and MCTS Performance}
 
