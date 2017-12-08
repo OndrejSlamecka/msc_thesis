@@ -1,13 +1,11 @@
 \chapter{MCTS in MDP Verification}
 
-In this chapter three new algorithms for verification of Markov
-decision processes are presented. One called
-called Bounded MCTS (BMCTS) follows closely the general MCTS scheme
-but the updates maintain lower and upper bounds. The second called
-MCTS-BRTDP is a fusion of MCTS, where each rollout (TODO: make use of
-this word consistent) is a single iteration of BRTDP.
-The third one called is called BRTDP-UCB and uses the UCB formula to
-select the next action in BRTDP.
+In this chapter three new algorithms for verification of Markov decision
+processes are presented. One called called Bounded MCTS (BMCTS) follows
+closely the general MCTS scheme but the updates maintain lower and upper
+bounds. The second called MCTS-BRTDP is a fusion of MCTS, where each
+rollout is a single iteration of BRTDP.  The third one called is called
+BRTDP-UCB and uses the UCB formula to select the next action in BRTDP.
 
 These algorithms can be altered by changing the tree node selection
 heuristic. We suggest and evaluate two formulas, UCB and VCB. Here $U_i$
@@ -33,6 +31,7 @@ performance is very bad (TODO: check this is the case on more models).
     CCB_i = U_i (1 - (U_i - L_i)) + C \sqrt{ \frac{2 \ln n}{n_i} }
 \]
 
+\pagebreak
 
 \section{Bounded MCTS}
 
@@ -70,6 +69,7 @@ more relevant for maximizing the sought probability.
 \EndFunction
 
 \Function{Rollout}{$s$}
+TODO
 \EndFunction
 
 \Function{TreePolicy}{$s$}
@@ -87,12 +87,6 @@ more relevant for maximizing the sought probability.
 \end{algorithmic}
 \end{algorithm}
 
-
-TODO: Prove AC of this with UCB. This should be easy as eventually this will sample all
-the paths in the MDP. The problem might be that there is a small chance
-we will cycle in an end component.
-
-
 \section{MCTS-BRTDP}
 
 MCTS-BRTDP is a variation of BMCTS in which each rollout is a
@@ -101,15 +95,11 @@ for significantly faster updates as compared to BMCTS but still
 utilizing exploration which makes it possible to overcome parts of the
 MDP which are hard for BRTDP.
 
-TODO: How do we deal with end components and why we don't do it. What if
-we grow a tree into an end component? What happens if a state already is
-in a tree?
-
 The functions \textsc{TreePolicy} and \textsc{Backup} are implemented in
-the same way as in \autoref{alg_bmcts}.
-
-TODO: Solve the problem with growing the tree into a MEC by removing the
-subtree containing nodes of the MEC when BRTDP collapses it.
+the same way as in \autoref{alg_bmcts}. Furthermore a map from states to
+lists of nodes in the tree is maintained and each time a MEC is
+collapsed, the subtrees in the MCTS tree corresponding to the nodes
+representing a state in the MEC are removed.
 
 \begin{algorithm}
 \caption{MCTS-BRTDP}
@@ -122,20 +112,24 @@ subtree containing nodes of the MEC when BRTDP collapses it.
         \State $\Delta \gets \text{an iteration of } \Call{BRTDP}{v_l}$
         \State $\Call{Backup}{v_l, \Delta}$
     \EndWhile
-    \State \Return Action from $v_0$ to the best node (by some
-    given metric).
+    \State \Return $(L(s_0), U(s_0))$
 \EndFunction
 
 \end{algorithmic}
 \end{algorithm}
 
-TODO: Prove AC with UCB. This should somehow explain
-what happens if a state already is in a tree?
 
+
+TODO:
+is this almost surely correct algorithm?
+I would say it is, as we know BRTDP is almost surely correct, MCTS eventually explores everything and the MCTS tree has always correct view of the actual MDP. So then it falls to the correctness of the update, which is the Bellman update, so it is ok.
 
 \section{UCB in BRTDP}
 
 We further present one algorithm which is not based on MCTS but
-incorporates the $UCB$ exploration term into BRTDP. TODO: pseudocode?
-probably not, it is just BRTDP where the action is chosen according to
-UCB, is it AC? can we prove it?
+incorporates the $UCB$ exploration term into BRTDP. Instead of choosing
+an action with the greatest upper bound, it chooses the action with the
+greatest UCB value.
+
+This algorithm eventually explores as much as the previously mentioned
+variants of BRTDP if necessary.

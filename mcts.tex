@@ -472,7 +472,16 @@ when to use UCT (\autoref{uct} with \autoref{alg:mcts_negamax}) without
 iterating UCT for a long time.
 
 While UCT achieved success in many games \parencite{mcts_survey},
-for example in chess it does not perform well. The reason being that chess
+for example in chess it does not perform well\footnote{
+    Days prior to submitting this thesis a preprint article
+    \parencite{alphazero} appeared
+which describes a successful use of MCTS to play chess. The approach,
+however, employs model-specific neural networks to guide the search and
+so it seems that the observations made here (regarding general game
+playing) still translate to the domain of MDP verification (as the
+models are usually not used again, it is not effective to train a network
+for them). On the other hand this surely deserves a deeper
+investigation.}. The reason being that chess
 games contain a lot of trap states (states from which the opponent
 has a guaranteed victory) which are reachable just in a few turns. UCT
 then spends a lot of time exploring these unimportant parts of the search

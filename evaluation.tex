@@ -80,9 +80,11 @@ endmodule
 \end{figure}
 
 A property we might be interested in is the maximum probability of
-eventually reaching state \verb|s=2|.  TODO: Describe the logic.
-TODO: Warn that only support Pmax and we don't support timed properties (e.g. $F <=
-x$ is not supported).
+eventually reaching state \verb|s=2|, this could be described to PRISM
+with the string \verb|Pmax=? [F s=2]|. A user can use standard logical
+connectives for describing the target states. At the moment our
+implementation does not support timed properties (e.g. $F <= x$ is not
+supported), however, it is not hard to implement such functionality.
 
 \subsection*{Running PRISM}
 
@@ -116,8 +118,8 @@ BRTDP is chosen to be the one with highest upper bound.
 \end{verbatim}
 \medskip
 
-The UCB exploration constant can be chosen with the
-\verb|-ucb1constant v|. If not provided the value is set to
+The UCB constant can be chosen with
+\verb|-ucb1constant|. If not provided the value is set to
 $1/\sqrt{2}$.
 
 The method can be chosen out of the following: \verb|MCTS_BRTDP|,
@@ -164,15 +166,18 @@ inside directory \verb|nextstate|. The UCB heuristic is implemented in
 directory \verb|treeheuristic|.
 
 MCTS-BRTDP is implemented in \verb|search/MctsBrtdp.java|. The entry
-point is method \verb|computeProb|, subsequently
+point is \verb|computeProb|, subsequently
 \verb|monteCarloTreeSearch| is invoked until the stopping condition
 is reached (see method \verb|isDone|). Method
-\verb|monteCarloTreeSearch| first selects and expands a tree state,
+\verb|monteCarloTreeSearch| first selects and expands a tree state
+(using \verb|treeSelectAndExpand|),
 then uses \verb|exploreAndUpdate| implemented in BRTDP
-(\verb|search/HeuristicBrtdp.java|) as the default policy and propagates
+(\verb|search/HeuristicBrtdp.java|) as the rollout and propagates
 the values using updates to the root.
 
-TODO: Describe treeSelectAndExpand?
+As we have observed problems only once during thousands of runs on our
+models, we have not implemented the removal of subtrees induced by nodes
+corresponding to a state which is contained in a collapsed MEC.
 
 BMCTS is implemented by modifying MCTS-BRTDP. The modification is turned
 on when the flag \verb|next_action 5| is added to a command using
@@ -181,17 +186,49 @@ uniformly at random instead of the BRTDP-way by upper bound.
 
 \section{Behaviour on Small Models}
 
-Describe how do MCTS based methods solve few small models like
+For small models we use visualization to observe how MCTS-BRTDP solves
+them. To render the progress of MCTS-BRTDP into a series of pictures,
+the last lines of \verb|MctsBrtdp.monteCarloTreeSearch| has to be uncommented.
+Due to the randomized nature of the algortihms a researcher should
+observe more runs before making conclusions.
 
-* bin tree.
-
-* the BRTDP adversary.
-
+We present three simple models and example runs of MCTS-BRTDP in the
+attached files. The first is a model resembling a binary tree, second is
+the BRTDP adversary (TODO: Third)
 * On the thing below, might be good to compare with BRTDP.
 \begin{verbatim}
   init -> cloud of tens of states -> target
        \> easy path               -> target
 \end{verbatim}
+
+\subsection*{Binary Tree Model}
+
+The ``binary tree'' model features two decisions ({\em left} and {\em
+right}) in each state and each decision has two successors,
+the {\em left} one occurs with probability 0.2,
+the {\em right} one with 0.8. A path through the model goes through 4 states
+before it reaches a ``leaf'' state. Every leaf state of the subtree
+induced by the left decision in root leads to state 85, every leaf state
+of the other subtree leads to state 86. We ask what is the maximum
+probability of reaching state 85.
+
+By running the program repeatedly it can be observed that MCTS-BRTDP
+almost evenly explores the branches in a balanced way while utilizing
+BRTDP rollouts to search for promising paths. BRTDP on its own
+selects a branch it knows the least about until it learns the upper bound
+for the right part of the tree is 0 and therefore it has to focus on the
+left part. The VCB for MCTS-BRTDP focuses on the left part quickly due
+to successful results, however it still explores the right part to look
+for possible improvements overlooked earlier.
+
+TODO: draw start.
+
+\subsection*{BRTDP adversary}
+
+In \autoref{brtdp_adversary} MCTS-BRTDP has a clear advantage as it
+traverses to a leaf of the tree and then adds a node to it with each iteration.
+Soon the tree reaches the target state and it remains to perform updates
+equivalent to value iteration.
 
 
 \section{PRISM Benchmark Suite and Other Models}
@@ -199,10 +236,10 @@ Describe how do MCTS based methods solve few small models like
 Experimental evaluation was done mainly on standard models
 distributed with PRISM. Most of the MDPs described by these models are
 concerned with network configuration where randomness plays important
-role in achieving a common goal. We provide a brief and incomplete
-description of several models just to offer basic familiarity
-and refer the reader to the thorough descriptions on PRISM's website.
-http://www.prismmodelchecker.org/casestudies/
+role in achieving a common goal. We provide a brief description of the
+{\em zeroconf} model to offer basic familiarity and refer the reader to
+thorough descriptions of all the models on PRISM's website
+\href{http://www.prismmodelchecker.org/casestudies/}{www.prismmodelchecker.org/casestudies/}.
 
 We also created new MDPs by combining the PRISM models with the MDP
 which is hard for BRTDP (\autoref{brtdp_adversary}). We describe them in
@@ -230,15 +267,17 @@ repeat the process. If it does not receive a response it then broadcasts
 twice an ARP packet asserting this computer's use of the chosen IP
 address.
 
-\subsection*{IEEE 1394 FireWire}
+TODO
 
-FireWire is an interface standard for serial bus
+%\subsection*{IEEE 1394 FireWire}
 
-\subsection*{Wireless LAN}
+%FireWire is an interface standard for serial bus
 
-\subsection*{Randomised Consensus Shared Coin Protocol}
+%\subsection*{Wireless LAN}
 
-\subsection*{mer}
+%\subsection*{Randomised Consensus Shared Coin Protocol}
+
+%\subsection*{mer}
 
 \subsection*{Combining PRISM models with BRTDP adversary}
 
@@ -334,6 +373,8 @@ Other methods always run out of time.
 But on composition-wlan6 we observed that MCTS-BRTDP is the only method which
 can actually solve the problem. Moreover it takes only few thousands of states
 to be explored and a few seconds of running time.
+
+TODO: Impact of UCB constant.
 
 \begin{landscape}
 
