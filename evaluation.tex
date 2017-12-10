@@ -402,10 +402,14 @@ composition-zeroconf models is value iteration (specifically with $K = 40$ the
 model has 141 thousand states and VI solves it, regardless of choice of $N$).
 Other methods always run out of time.
 But on composition-wlan6 we observed that MCTS-BRTDP is the only method which
-can actually solve the problem. Moreover it takes only few thousands of states
-to be explored and a few seconds of running time.
+can actually solve the problem. Moreover, it has to explore only few
+thousands of states and a few seconds of running time.
 
-TODO: Impact of UCB constant.
+The impact of tree heuristic constant is usually trivial and we did not
+observe any cases where it would be beneficial to fine-tune the
+constant. As it forces exploration, significant increases beyond a small
+useful value just increased the number of explored states. TODO: can
+this be seen in the first table?
 
 \begin{landscape}
 
