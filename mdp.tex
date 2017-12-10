@@ -1,15 +1,16 @@
 \chapter{Markov Decision Processes}
 \label{ch_mdp}
 
-We start by introducing Markov chains, a simpler type of
-probabilistic processes which does not offer choices to be made,
-then continue to generalize to Markov Decision Processes.
-We then overview known approaches to {\em verification} (checking if a
-given MDP satisfies a given property) with special focus on Bounded
+At first, we look at Markov chains, a simpler type of
+probabilistic processes which do not offer choices to be made.
+Then we generalize to Markov Decision Processes.
+After that, we introduce the problem of {\em verification} (checking if a
+given MDP satisfies a given property), overview known solutions with
+a focus on value iteration and Bounded
 Real-Time Dynamic Programming which will be used in later chapters.
 
 It is assumed the reader is familiar with basic notions of probability
-theory, namely those of {\em probability space} and {\em probabilty measure}.
+theory, namely those of {\em probability space} and {\em probability measure}.
 Function $f : X \to [0,1]$ is a {\em probability distribution} over
 a countable set $X$ if $\sum_{x \in X} f(x) = 1$.
 $\distribution{S}$ denotes the
@@ -24,7 +25,7 @@ We refer the reader to
 
 Markov chain is a simpler formalism than
 Markov decision process and provides a good first intuition about
-probabilistic models. In a Markov chain there are no decisions, only
+probabilistic models. In a Markov chain, there are no decisions, only
 probabilities of transition.
 
 \begin{definition}
@@ -89,9 +90,9 @@ simplicity we do not draw the transitions with zero probability).
 \end{tikzpicture}
 \end{example}
 
-\begin{example} The Drunkard's Walk is a well known example of a Markov
+\begin{example} The Drunkard's Walk is a well-known example of a Markov
     chain. One can imagine a drunk person starting in the middle of a road
-    (state $s_0$) and then moving randomly left or right. How many times
+    (state $s_0$) and then moving left or right at random. How many times
     will the drunk visit the middle of the road? How many steps will it
     take the drunk on average to reach a ditch ($s_{-2}, s_2$)?
 
@@ -123,7 +124,7 @@ simplicity we do not draw the transitions with zero probability).
 
 \section{Markov Decision Processes}
 
-Markov decison processes are similar to Markov chains, except now an
+Markov decision processes are similar to Markov chains, except now a
 controller interacting with the process can in each state pick an action
 and the next state is chosen according to a distribution on states
 corresponding to this action.
@@ -139,7 +140,7 @@ function which assigns a probability distrubution on states to an action
 and a state.
 
 It is assumed without loss of generality that for all $s \neq s'$ it
-holds that $E(s) \cap E(s') = \emptyset$. If this didn't hold the
+holds that $E(s) \cap E(s') = \emptyset$. If this did not hold the
 actions could just be renamed.
 \end{definition}
 
@@ -247,6 +248,8 @@ the point-wise ordering of subsets.
     \draw (s0) edge [bend left, ->] node [midway, above] {$a$} (s1);
     \draw (s1) edge [bend left, ->] node [midway, below] {$b$} (s0);
     \draw (s1) edge [->] node [midway, above] {$c$} (s2);
+
+    \draw (s2) edge [->, loop right] node [midway, right] {d} (s2);
 \end{tikzpicture}
 \end{center}
 \caption{An MDP with a non-trivial end component.}
@@ -265,12 +268,12 @@ $a$ in the last (current) state the probability of $a$ being chosen.
     $\sigma : FPath \to Dist(A)$
     such that\footnote{
 The condition ensures that only actions which can
-be chosen have non-zero probability assigned by the strategy.
-    }
+be chosen have non-zero probability assigned by the strategy.}
     $\sigma(\rho)(a) > 0 \implies a \in E(\last(\rho))$.
 
     A strategy $\sigma$ is {\em memoryless} if $\sigma(\rho)$ depends
-    only on $\last(\rho)$.
+    only on $\last(\rho)$. A strategy $\sigma$ is {\em deterministic}
+    if $\sigma(\rho)(a) = 1$ for some $a \in E(\last(\rho))$.
 \end{definition}
 
 What happens once the strategy is fixed? The MDP becomes a Markov chain.
@@ -292,9 +295,9 @@ probability they will be traversed.
 %strategies only a small portion of reasonably good strategies is
 %explored \parencite{smc}.}.
 
-\noindent {\bf Completness of information about an MDP.}
+\noindent {\bf Completeness of information about an MDP.}
 One can distinguish between various levels of knowledge about an MDP,
-usually depending on the source of the model.
+usually, depending on the source of the model.
 Complete information corresponds to knowing every part of the
 definition of an MDP, as opposed to limited information where the MDP
 can only be used as a black box from which can information be extracted
@@ -313,40 +316,47 @@ a given property. {\em Model
 checking} is an approach to formal verification which uses a model of
 the system to verify the property.
 
-In our case the systems are modelled as Markov decision processes and
-the properties are concerned about maximum probability of reaching a state.
+In our case, the systems are modeled as Markov decision processes and
+the properties are concerned about the maximum probability of reaching a
+state.
 
 To simplify notation, in this section we often refer to a fixed MDP $\mathcal{M} =
 (S,s_0,A,E,\Delta)$, and a set of target states $F$.
 
 \noindent \textbf{Reachability probability.}
 Let $\lozenge F$ be the set of all infinite paths that reach a state in $F$.
-In this thesis we are concerned with maximizing the reachability
+In this thesis we are concerned with maximising the reachability
 probability $P^\sigma_{\mathcal{M},s_0}(\lozenge F)$ over the set of all
 strategies $\sigma$.
 We define the {\em value function} $V(s) = \sup_{\sigma}
 P^\sigma_{\mathcal{M},s}(\lozenge F)$ for every state $s \in S$.
 
-Importantly there is always a memoryless strategy maximizing the
-reachability probability. Puterman \parencite{puterman} proves this for
-reward maximization and we can use his proof with a simple
-reduction \parencite{verification_complexity}.
+Importantly there is always a memoryless, deterministic strategy maximising the
+reachability probability. This was proven by Puterman \parencite{puterman}
+for reward maximization and the proof can be used with a simple
+reduction for the case of verification \parencite{verification_complexity}.
 For any MDP create an MDP with rewards, such that the reward function
 is zero everywhere, except when entering a target state it gives reward 1
-and then transitions only into a new sink state (with reward 0).
+and then transitions into a new sink state (with reward 0).
 
-In this section we describe value iteration and strategy iteration,
-which are standard algorithms for computing the maximum probability of
-reaching a state in F. In the next section a more involved algorithm
+In this section, we describe value iteration,
+which is a standard algorithm for computing the maximum probability of
+reaching a state in F. In the next section, a more involved algorithm
 called BRTDP is described.
 
-One approach we do not explain is formulating the problem as a system
+One approach not explained here is so-called {\em strategy iteration}
+which starts with an arbitrary strategy and gradually improves it as
+long as a change to the strategy is beneficial. Strategy iteration has
+a clear stopping criterion as opposed to value iteration, however, in
+practice, it does not perform better \parencite{forejt}.
+
+Another approach we do not explain is formulating the problem as a system
 linear equations and solving it. The solution is precise and has
-guaranteed correctness but the computation quickly becomes expensive as
+guaranteed correctness, but the computation quickly becomes expensive as
 the model grows in size.  See \parencite{forejt} for a description of
 this method.
 
-\subsection{Value Iteration}
+\subsection*{Value Iteration}
 
 Value iteration (in its variation for computing expected maximum rewards) is a
 dynamic programming algorithm which was first described by Richard
@@ -354,7 +364,7 @@ Bellman\footnote{Known for introducing the term dynamic programming.}
 \parencite{bellman} in 1957. We present its variation for computing the maximum
 reachability probability.
 
-Before showing the algorithm we first note that it will need to
+Before showing the algorithm, we first note that it will need to
 process all states. However, the values in some states are quite easy to
 compute and a preprocessing will allow for reduction of the
 state space.
@@ -386,11 +396,9 @@ same reduction as in the case of existence of memoryless optimal
 strategy.
 
 This recurrence relation is now turned into a dynamic programming
-algorithm as shown in \autoref{vi}. Instead of iterating $n$ times the
+algorithm as shown in \autoref{vi}. Instead of iterating $n$ times, the
 algorithm proceeds with its computations while the convergence is not
-slow (the threshold is given by some $\epsilon$). Limit on the number of
-iterations may be introduced if we want to check time bounded
-properties.
+slow (the threshold is given by some $\epsilon$).
 
 \begin{algorithm}
 \caption{Value Iteration}
@@ -407,8 +415,8 @@ properties.
 \end{algorithm}
 
 Value iteration is an easy method for computing the reachability
-probability of a given MDP.  However we only have a proof of convergence
-and not a good stopping criterion.  Furthermore it is doing extra work
+probability of a given MDP.  However, we only have a proof of convergence
+and not a useful stopping criterion.  Furthermore, it is doing extra work
 on models where only a small part needs to be explored to find a good
 strategy as it has to compute its results for all the states.
 
@@ -422,14 +430,6 @@ second issue later with heuristic methods.
 % http://www.sciencedirect.com/science/article/pii/S0304397516307095
 % http://pageperso.lif.univ-mrs.fr/~benjamin.monmege/talks/MoVe2015.pdf
 
-\subsection{Strategy Iteration}
-
-TODO
-Strategy Iteration (also Policy Iteration).
-Describe origin
-How it works
-Pros and cons
-
 \section{Bounded Real-Time Dynamic Programming}
 
 When only a portion of an MDP needs to be searched to find the right
@@ -440,8 +440,8 @@ the objective of finding the best-profit strategy
 \parencite{profit_brtdp} the algorithm was adapted to the problem of
 verification \parencite{atva14}.
 
-As in the previous section we refer to a fixed MDP $\mathcal{M} =
-(S,A,E,\Delta)$, its initial state $s_0$, and a set of target states
+As in the previous section, we refer to a fixed MDP $\mathcal{M} =$
+\linebreak $(S,s_0,A,E,\Delta)$, and a set of target states
 $F$. Further we fix $\epsilon$, an argument of the algorithm which sets
 the required precision (maximum allowed distance of the result of the
 algorithm from the correct value).
@@ -452,6 +452,7 @@ $V : S \times A \to [0,1]$ for all $s \in S$ and $a \in E(s)$ as follows
 \[
     V(s,a) \coloneqq \sum_{s' \in S} \Delta(s,a)(s')V(s')
 \]
+This serves to represent the value in $s$ after taking action $a$.
 BRTDP is learning $V$ by monotonically tightening its lower and upper
 bounds $L, U : S \times A \to [0,1]$ during simulated runs of
 $\mathcal{M}$ from the given initial state.
@@ -464,13 +465,13 @@ besides two trivial end components, one containing only the target state
 1 with $F = \{1\}$, the other only the state 0 with $V(0) = 0$.
 
 With this assumption BRTDP can be implemented as \autoref{alg:brtdp},
-alternating between simulation and update phases until it has sufficiently
-good knowledge about $V(s_0)$. In the simulation phase the algorithm
-samples a finite path from the initial state to one of states
-$\{1, 0\}$, each time using an action maximizing the upper bound.
-In the update phase the algorithm traverses the path backwards and
+alternating between simulation and update phases until it has
+sufficiently good knowledge about $V(s_0)$. In the simulation phase the,
+algorithm samples a finite path from the initial state to one of states
+$\{1, 0\}$, each time using an action maximising the upper bound.
+In the update phase, the algorithm traverses the path backwards and
 performs the Bellman update (known from value iteration),
-using the best known bounds, i.e.
+using the best-known bounds, i.e.
 $U(s) = \max_{a \in E(s)} U(s, a)$
 and
 $L(s) = \max_{a \in E(s)} L(s, a)$.
@@ -516,7 +517,7 @@ given $\epsilon$) far from each other.
 \end{algorithm}
 
 \subsection*{BRTDP for MDPs with End Components}
-Unfortunately \autoref{alg:brtdp} is not guaranteed to converge
+\autoref{alg:brtdp} is not guaranteed to converge
 when the MDP contains non-trivial end components.
 
 \begin{example}
@@ -538,27 +539,30 @@ when the MDP contains non-trivial end components.
     \node[state] at (0,0) (s0) {$s_0$};
     \node[state] at (2,0) (s1) {$s_1$};
     \node[transition] at (4,0) (s0b) {};
-    \node[state] at (6,-0.7) (s2) {$s_2$};
-    \node[state] at (6, 0.7) (s3) {$s_3$};
+    \node[state] at (6, 0.7) (s2) {$s_2$};
+    \node[state] at (6,-0.7) (s3) {$s_3$};
 
     \draw (s0) edge [bend left, ->] node [midway, above] {$a$} (s1);
     \draw (s1) edge [bend left, ->] node [midway, below] {$b$} (s0);
     \draw (s1) edge [->] node [midway, above] {$c$} (s0b);
 
-    \draw[->] (s0b) -- (s2) node [midway, below] {0.5};
-    \draw[->] (s0b) -- (s3) node [midway, above] {0.5};
+    \draw[->] (s0b) -- (s2) node [midway, above] {0.5};
+    \draw[->] (s0b) -- (s3) node [midway, below] {0.5};
+
+    \draw (s2) edge [->, loop right] node [midway, right] {d} (s2);
+    \draw (s3) edge [->, loop right] node [midway, right] {e} (s3);
 \end{tikzpicture}
 \end{center}
 \end{example}
 
-Fortunately there is an on-the-fly method\footnote{The knowledge we have
+Fortunately, there is an on-the-fly method\footnote{The knowledge we have
 about the MDP during computation suffices -- knowing the whole MDP is
 not necessary.}
 for resolving the problem in BRTDP
 \parencite{atva14}, which we present to an extent important for our
 future use of BRTDP.
 
-During the explore phase the algorithm periodically (every $k_i$
+During the simulation phase, the algorithm periodically (every $k_i$
 steps) creates an auxiliary MDP based on the states visited so far and
 their neighbours. The algorithm then identifies maximal ECs in this auxiliary
 MDP.
@@ -567,24 +571,26 @@ If an end component is found it is collapsed, i.e. the states are merged into a
 single state and functions $E, \Delta$ are naturally transformed to work
 the same way in the modified MDP.
 
-Finally the merged state has its $U, L$ updated for every action in the
+Finally, the merged state has its $U, L$ updated for every action in the
 end component. If there was a target state in the end component then the
 merged state is marked as a target state. If there was no target state and
 there is no outgoing action from the merged state then it is marked as a
 zero state.
 
 \subsection*{Variants of BRTDP}
-When in state $s$ and chosen action $a$,
+When BRTDP is in state $s$ and it has chosen action $a$,
 the choice of the next state does not necessarily have to be done by
 sampling the transition distribution $\Delta(s,a)$ (we call this variant
-HIGH-PROB) but can be instead be chosen with probability
+HIGH-PROB) but can be instead chosen with probability
 $\Delta(s,a)(s') \cdot (U(s') - L(s'))$, we call this variant MAX-DIFF.
 One can think of other variants, for example round-robin choice.
 
 \begin{example}
 \label{brtdp_adversary}
-We conclude with an example MDP, which is hard for most variants of BRTDP.
-For example the HIGH-PROB TODO
+We conclude with an example MDP, which is hard for most variants of
+BRTDP when the target is the final state.
+For example the HIGH-PROB variant has probability $0.99$ of returning to
+the initial state from every state until reaching the final state.
 
 \begin{center}
 \begin{tikzpicture}

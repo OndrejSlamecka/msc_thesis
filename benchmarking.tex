@@ -1,0 +1,80 @@
+\chapter{Benchmarking}
+
+To allow the reader to benchmark our implementation we are providing a
+brief description of how to use, modify and interpret the results of
+our benchmarking script.
+
+Our core benchmark script with definitions is to be found in \linebreak
+\verb|prism/tests/reachability/scripts/benchmark.py|, in the same
+directory is \verb|run_benchmark.py| which is used to describe the
+actual benchmark to be run.
+
+For every model there is a class like \verb|ZeroconfParameters|, whose
+objects hold the configuration necessary to run a benchmark of the model.
+To generate an uncofigured instance of the class use a function starting
+with \verb|empty_|, e.g., \verb|empty_ZeroconfParameters()|.
+
+Now the parameters object needs to be configured. If the model
+has any parameters, these can be set with function
+\verb|for_constants(|\linebreak {\em parameter name, list
+of constants, parameter object generator}\verb|)|.
+The result is again a generator\footnote{This allows for convenient
+    chaining of configuration functions. See
+Python documentation for an explanation of generators.} of parameters
+holding objects, each with one of the values set as the parameter. The script
+implements shortcuts for several constants, e.g., \verb|forK| which is
+useful for zeroconf.
+
+Next a method for solving the model has to be chosen. This is done using
+\verb|for_method(|{\em list of methods, parameter object
+generator}\verb|)|. For MCTS based methods a constant for the tree
+formula has to be set with \verb|for_ucb_constants|.
+
+Now the generator is passed to function \verb|run(|{\em \# of
+repetitions, parameter object generator}\verb|)| which prints method
+name, UCB constant (might be \verb|None|), and model parameters, and
+then invokes {\em evaluator functions}.
+
+\begin{verbatim}
+run(5,
+  for_ucb_constants([0.5, 1, 5],
+    for_method(['BRTDP', 'MCTS_BRTDP_MAXDIFF', 'VI'],
+      forN([10],
+        forK([10],
+          empty_ZeroconfParameters())))))
+\end{verbatim}
+
+\pagebreak
+
+Function \verb|vi_evaluator| repeatedly invokes PRISM, computes
+statistics of the results and prints the following:
+\begin{enumerate}
+    \item average time to construct the model,
+    \item average time to check the property,
+    \item the result of verification,
+    \item total number of states,
+    \item number of states VI had to process,
+    \item number of timeouts,
+    \item number of errors.
+\end{enumerate}
+
+Function \verb|heuristic_evaluator| repeatedly invokes PRISM, computes
+statistics of the results and prints the following:
+\begin{enumerate}
+    \item average time to check the property,
+    \item average time minus the minimum time to check the property,
+    \item the maximum time minus average time,
+    \item number of heuristic trials,
+    \item average number of steps,
+    \item minimum lower bound,
+    \item maximum upper bound,
+    \item average number of states explored,
+    \item the number of timeouts,
+    \item the number of errors.
+\end{enumerate}
+
+For convenience the script offers function \verb|yield_generators_list|
+which takes a list of generator objects and returns a single generator
+with the same functionality as the passed objects together.
+As we did not need to change the allowed time to run the script we have
+hardcoded value called \verb|timeout| in \verb|benchmark.py|.

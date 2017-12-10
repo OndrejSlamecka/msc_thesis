@@ -18,9 +18,9 @@ Nicholas C. Metropolis and others).
 This method found its way into game
 theory in 1993 when it was applied to the board game Go
 \parencite{MonteCarloGo}. The approach was later further improved
-\parencite{MonteCarloGoDevel} but the real breakthrough came in 2006
+\parencite{MonteCarloGoDevel}, but the real breakthrough came in 2006
 when Coulom \parencite{Coulom} and Kocsis, Szepesvári \parencite{Kocsis}
-independetly explored the idea of maintaing a tree which would guide the
+independently explored the idea of maintaining a tree which would guide the
 search for strategies -- thus discovering Monte Carlo Tree Search.
 This was eventually used in the AlphaGo program
 \parencite{alphago}, the first
@@ -31,7 +31,7 @@ heuristic search algorithm for finding good strategies in complex
 decision processes by combining standard approaches of artificial
 intelligence and computational statistics: tree search and sampling.
 
-In this chapter the general MCTS scheme is defined and a concrete instance
+In this chapter, the general MCTS scheme is defined, and a concrete instance
 called UCT is shown together with its application to maximizing rewards
 in MDPs and games. The chapter is based mostly on a thorough MCTS survey
 paper \parencite{mcts_survey}.
@@ -43,7 +43,7 @@ problem too in this chapter unlike the rest of the thesis.
 \section{General MCTS Scheme}
 
 MCTS iteratively builds a tree which approximates possible resulting
-rewards of strategies in the decision process. In each iteration the
+rewards of strategies in the decision process. In each iteration, the
 tree guides the search to balance between exploitation of known good
 strategies and exploration of new strategies. When the search leaves the
 tree it proceeds at random and upon terminating it adds a new leaf to
@@ -91,23 +91,21 @@ Constant $C$ instructs the algorithm how much weight to give to
 exploration. See \parencite{improved_mc} for insights into choice of $C$
 in some specific situations.
 
-\autoref{uct} is implementation of the general \autoref{mcts}. As a
-minor simplification the algorithm expects an MDP with rewards
-$(S,s_0,A,E,R)$ and a marked set of terminal state, such that a reward
+\autoref{alg:uct} is an implementation of the general scheme of \autoref{mcts}.
+As a minor simplification the algorithm expects an MDP with rewards
+$(S,s_0,A,E,R)$ and a marked set of terminal states, such that a reward
 is paid out only when a terminal state is reached.
 
 Every tree node $v$ has information about its corresponding state
 ($v.state$), the action which lead to it ($v.action$), the number of
 times it has been visited so far ($v.visits$), and the reward which has
 been collected after traversing through it ($v.q$, the Q refers to
-Q-learning).
-
-TODO: More explanation. e.g. why does it return what it returns,
-what does q/n mean...
+Q-learning). For a node $v$ value $v.q / v.visits$ thus represents an
+estimate of the actual attainable reward.
 
 \begin{algorithm}
     \caption{Upper Confidence Bound for Trees}
-\label{uct}
+\label{alg:uct}
 \begin{algorithmic}
 \Function{UCT}{$s_0$}
     \State Let $v_0$ be the root of the MCTS tree, with $v_0.state = s_0$.
@@ -136,11 +134,11 @@ what does q/n mean...
         v'.action = a$
 \EndFunction
 
-\Function{BestChild}{v, c}
+\Function{BestChild}{v, C}
     \State \Return
     $\argmax\limits_{v' \text{ a child of } v}
     \frac{v'.q}{v'.visits} +
-    c\sqrt{\frac{2\ln v.visits}{v'.visits}}$
+    C \sqrt{\frac{2\ln v.visits}{v'.visits}}$
 \EndFunction
 
 \Function{Rollout}{s}
@@ -148,9 +146,10 @@ what does q/n mean...
         \State choose $a \in E(s)$ uniformly at random
         \State $s \gets \Delta(s,a)$
     \EndWhile
+    \Return reward for reaching $s$
 \EndFunction
 
-\Function{Backup}{s}
+\Function{Backup}{s, r}
     \While{$v$ is not null}
         \State $v.visits \gets v.visits + 1$
         \State $v.q \gets v.q + r$
@@ -160,7 +159,13 @@ what does q/n mean...
 \end{algorithmic}
 \end{algorithm}
 
-TODO: Example execution.
+The tree is the algorithm's estimate of the actual reward attainable
+from various parts of the MDP. In each tree node
+it greedily chooses to confirm it can get a good reward or goes to explore
+a little explored part of the MDP, the choice depends on the tree heuristic value.
+A random rollout is performed, and the algorithm then adds a new node to
+the tree which allows for a more precise estimate in the chosen part of
+the tree.
 
 As UCT is the most common type of MCTS algorithm, the terms UCT and MCTS
 are often used interchangeably in literature.
@@ -168,19 +173,19 @@ are often used interchangeably in literature.
 \section{Solving Games}
 
 In this section a brief introduction to game theory is given, starting
-with definitions of games, strategies and solutions to games. We
+with definitions of games, strategies, and solutions to games. We
 proceed by presenting the standard {\em minimax} algorithm, then showing
 how MCTS can be used to solve games and how it compares with minimax.
-Lastly we briefly compare the application of MCTS to Go and Chess.
+Lastly, we briefly compare the application of MCTS to Go and Chess.
 Observing where it performs good and where it does not provides insight
 the algorithm and it is a useful starting point for understanding the results
 of evaluation in \autoref{ch_evaluation}.
 
-For precise understanding of the model of games we present the following
+For a precise understanding of the model of games, we present the following
 definition.  The perfect-information in games corresponds to full
 observability in MDP.  The reader can notice other similarities with
-MDPs as well, for example games have states, actions and enabled
-actions, as well as rewards. On the other hand the transition function
+MDPs as well, for example, games have states, actions and enabled
+actions, as well as rewards. On the other hand, the transition function
 is deterministic in our definition.
 
 \begin{definition}
@@ -468,20 +473,21 @@ so eventually, after a lot of MCTS iterations, there is a negligible
 difference between the results of the two methods and they pick the same
 next move. However in
 applications we want to know when to use minimax (\autoref{negamax}) and
-when to use UCT (\autoref{uct} with \autoref{alg:mcts_negamax}) without
+when to use UCT (\autoref{alg:uct} with \autoref{alg:mcts_negamax}) without
 iterating UCT for a long time.
 
 While UCT achieved success in many games \parencite{mcts_survey},
 for example in chess it does not perform well\footnote{
     Days prior to submitting this thesis a preprint article
-    \parencite{alphazero} appeared
-which describes a successful use of MCTS to play chess. The approach,
+    \parencite{alphazero} appeared,
+describing a successful use of MCTS to play chess. The approach,
 however, employs model-specific neural networks to guide the search and
-so it seems that the observations made here (regarding general game
-playing) still translate to the domain of MDP verification (as the
-models are usually not used again, it is not effective to train a network
-for them). On the other hand this surely deserves a deeper
-investigation.}. The reason being that chess
+so it seems that the observations made here (in tree traversal MCTS has
+only a very limited information about the possible outcomes of each
+choice) still translate to the domain of MDP
+verification (as the models are usually not used again, it is not
+effective to train a network for them). On the other hand this surely
+deserves a deeper investigation.}. The reason being that chess
 games contain a lot of trap states (states from which the opponent
 has a guaranteed victory) which are reachable just in a few turns. UCT
 then spends a lot of time exploring these unimportant parts of the search

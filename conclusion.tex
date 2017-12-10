@@ -10,35 +10,35 @@ We suggested various new algorithms by combining the known
 approaches to MDP verification with the techniques of MCTS. These
 algorithms were implemented and evaluated on standard and new models.
 
-We have observed the MAX-DIFF variant of BRTDP is a very strong
+We have observed the MAX-DIFF variant of BRTDP is a powerful
 heuristic which itself often balances well between exploration and
-exploitation in common MDP models which was our goal when designing the
-MCTS based algorithm. Our MCTS-BRTDP algorithm
-performs only slightly worse on the PRISM benchmark suite while it
-performs significantly better on many models which are hard for BRTDP.
-Even though value iteration does well on those hard-for-BRTDP models it
-loses on the PRISM suite, making MCTS-BRTDP a good universal choice for
-any MDP.
+exploitation in common MDP models.
+%Such behaviour was our goal when designing the MCTS based algorithm.
+Our MCTS-BRTDP algorithm performs only slightly worse on the PRISM
+benchmark suite while it performs significantly better on many models
+which are hard for BRTDP.  Even though value iteration does well on
+those hard-for-BRTDP models, it loses on the PRISM suite, making
+MCTS-BRTDP a universal choice for any MDP.
 
 There is still a lot of work to be done in order to properly understand
 how MCTS based methods may be applied in MDP verification. A
 quantitative study of the algorithms' executions would help understand
 which parts
 of an MDP are explored even though they are not important and which
-important parts are explored too late. This could be used to suggest new
-formulas for tree node selection or other variations, however due to
-complexity of the models this might be a very hard task.
+important parts are explored too late. Such observations could be used
+to suggest new formulas for tree node selection or other variations,
+however, due to the complexity of the models, this might be a demanding task.
 
 Another interesting area of research might be into
 new algorithms where the MCTS approach has better chances to
-improve the search, for example one might try running MCTS and BRTDP in
-stages, each time for a limited number of iterations, until the bounds
-are sufficiently close.
+improve the search, for example, one might try running MCTS and BRTDP in
+stages, each time for a limited number of iterations until the bounds
+are sufficiently close. Interleaving of MCTS-BRTDP-VCB (to get a precise
+lower bound quickly) with BRTDP (to eliminate overly optimistic upper
+bounds) might also work for some MDPs.
 
-There
-are also rather easy practical tasks like adding support for time
-bounded properties or extracting the strategy from the
-solution.
+There are also rather easy practical tasks like adding support for
+time-bounded properties or extracting the strategy from the solution.
 %\footnote{Once
 %the algorithm converges choose the action with the best upper bound at
 %each step.}.

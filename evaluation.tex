@@ -81,10 +81,12 @@ endmodule
 
 A property we might be interested in is the maximum probability of
 eventually reaching state \verb|s=2|, this could be described to PRISM
-with the string \verb|Pmax=? [F s=2]|. A user can use standard logical
+with the string \verb|Pmax=? [F s=2]|, where $F$ represents the
+$\lozenge$ symbol used previously. A user can use standard logical
 connectives for describing the target states. At the moment our
-implementation does not support timed properties (e.g. $F <= x$ is not
-supported), however, it is not hard to implement such functionality.
+implementation does not support timed properties (i.e., \verb|F <= x| is not
+supported), however, we expect it is not too hard to implement such
+functionality.
 
 \subsection*{Running PRISM}
 
@@ -92,15 +94,16 @@ We have a model description and a property but before we analyze it
 PRISM has to be installed.
 There is a modified version of PRISM distributed with this thesis. It
 can be built by issuing the \verb|make| command inside the
-\verb|prism| directory. Java is a required prerequisite.
-Once built the PRISM binary is available at \verb|prism/bin/prism|.
+\verb|prism/prism| directory. Java is a required prerequisite.
+Once built the PRISM binary is available at \verb|prism/prism/bin/prism|.
 
 Now use PRISM to analyze the model -- its name is passed as the first
 argument and \verb|-pf| specifies the property we want to check.
 The \verb|-ex| flag will be described later.
 Running the command below
 confirms our expectations: the maximum probability of eventually
-reaching state \verb|s=2| is 1.
+reaching state \verb|s=2| is 1. If not specificed otherwise, the
+algorithm used is value iteration.
 
 \medskip
 \begin{verbatim}
@@ -122,26 +125,24 @@ The UCB constant can be chosen with
 \verb|-ucb1constant|. If not provided the value is set to
 $1/\sqrt{2}$.
 
-The method can be chosen out of the following: \verb|MCTS_BRTDP|,
-\verb|MCTS| (TODO: Rename to BMCTS), \verb|BRTDP|, \verb|BRTDP_UCB|,
-or empty for value  iteration.
-The next state heuristics are
+The heuristic method can be chosen out of the following:\linebreak
+\verb|MCTS_BRTDP|, \verb|BRTDP|, \verb|BRTDP_UCB|. BMCTS is chosen by
+using method \verb|MCTS_BRTDP| together with \verb|-next_action 5|.
+The next state heuristics we use are
 \verb|HIGH_PROB|, \verb|MAX_DIFF|.
 The variation of BRTDP using UCB to select the next action is chosen by
-adding switch \verb|-next_action 2|.
+adding \verb|-next_action 2|.
 
 \subsection*{Data structures}
 The \verb|-ex| switch used in the value iteration example above tells
 PRISM to use the explicit computation engine.
 The explicit computation engine explores the MDP and stores it in
 a sparse matrix before the value iteration algorithm is run.
-
-PRISM offers three symbolic computation engines based on binary decision
-diagrams, namely MTBDD (multi-terminal BDD, \verb|-mtbdd| switch),
-sparse TODO.
+PRISM also offers three symbolic computation engines based on binary decision
+diagrams.
 
 All the heuristic methods use a data structure implemented in
-\verb|prism/src/heuristic/CachedModelGenerator.java|.
+\verb|prism/prism/src/heuristic/CachedModelGenerator.java|.
 With this {\em model generator} data structure PRISM will not build the
 whole MDP from its description unless asked to.
 Asking the model generator to reveal parts of the model results in the
@@ -153,7 +154,7 @@ which is when the heuristic methods perform so well.
 
 We describe how the pseudocode described in \autoref{ch_mcts} maps to
 the implementation in PRISM. The implementation can be found in
-\verb|prism/src/heuristics|.
+\verb|prism/prism/src/heuristics|.
 
 To represent the MCTS tree we use classes \verb|MCTree.java| and
 \linebreak
@@ -186,20 +187,18 @@ uniformly at random instead of the BRTDP-way by upper bound.
 
 \section{Behaviour on Small Models}
 
-For small models we use visualization to observe how MCTS-BRTDP solves
+For small models we used visualization to observe how MCTS-BRTDP solves
 them. To render the progress of MCTS-BRTDP into a series of pictures,
 the last lines of \verb|MctsBrtdp.monteCarloTreeSearch| has to be uncommented.
 Due to the randomized nature of the algortihms a researcher should
 observe more runs before making conclusions.
 
-We present three simple models and example runs of MCTS-BRTDP in the
-attached files. The first is a model resembling a binary tree, second is
-the BRTDP adversary (TODO: Third)
-* On the thing below, might be good to compare with BRTDP.
-\begin{verbatim}
-  init -> cloud of tens of states -> target
-       \> easy path               -> target
-\end{verbatim}
+Three simple models are presented with a description of the methods'
+approach to solving them.
+The first is a model resembling a binary tree, second is
+the BRTDP adversary, the third model offers a choice between a simple
+path and a complex cloud. They can be found in directory
+\verb|small_models| attached to the thesis.
 
 \subsection*{Binary Tree Model}
 
@@ -218,12 +217,10 @@ BRTDP rollouts to search for promising paths. BRTDP on its own
 selects a branch it knows the least about until it learns the upper bound
 for the right part of the tree is 0 and therefore it has to focus on the
 left part. The VCB for MCTS-BRTDP focuses on the left part quickly due
-to successful results, however it still explores the right part to look
-for possible improvements overlooked earlier.
+to successful results, however it still explores the right part a bit to
+look for possibly missed target states and to decrease the upper bound.
 
-TODO: draw start.
-
-\subsection*{BRTDP adversary}
+\subsection*{BRTDP Adversary}
 
 In \autoref{brtdp_adversary} MCTS-BRTDP has a clear advantage as it
 traverses to a leaf of the tree and then adds a node to it with each iteration.
@@ -231,14 +228,43 @@ Soon the tree reaches the target state and it remains to perform updates
 equivalent to value iteration.
 
 
+\subsection*{Cloud And Path Model}
+
+The model has an initial state,
+``left part'', and ``right part''. Left part is a simple path to a
+target state. Right part is comprised of states with randomly selected
+choices and transitions but without a target state.
+From the initial state there is an action to go left with probability
+0.8 and right with probability 0.2, and another action with the same
+effect but reversed probabilities.
+
+MAX-DIFF BRTDP quickly learns that the upper bound in right part is
+zero, abandonds this part of the MDP to focus on the left part and learn
+its upper and lower bound 0.8.
+
+MCTS-BRTDP is forced to explore the right part too but learns the
+correct value soon. On the other hand MCTS-BRTDP with the VCB formula
+finds the target in the left part and then focuses too much on this part
+even though what it needs is to learn that the right part has upper
+bound 0 -- this variant is thus taking very long to find the correct
+probability unless it is configured with a high multiplier in the
+exploration term of the VCB formula.
+
+Observing the VCB variant of MCTS-BRTDP on this and the binary tree
+models suggests that it is quick to find good lower bounds. However,
+then it commits to the good paths of the MDP so much that it has trouble
+computing a better upper bound in the parts which do not lead to a
+target way (as quickly as the exploited parts).
+
 \section{PRISM Benchmark Suite and Other Models}
 
 Experimental evaluation was done mainly on standard models
 distributed with PRISM. Most of the MDPs described by these models are
 concerned with network configuration where randomness plays important
-role in achieving a common goal. We provide a brief description of the
-{\em zeroconf} model to offer basic familiarity and refer the reader to
-thorough descriptions of all the models on PRISM's website
+role in achieving a common goal. We provide a brief, incomplete
+description of the {\em zeroconf} model to offer basic familiarity and
+refer the reader to thorough descriptions of all the models on PRISM's
+website
 \href{http://www.prismmodelchecker.org/casestudies/}{www.prismmodelchecker.org/casestudies/}.
 
 We also created new MDPs by combining the PRISM models with the MDP
@@ -266,8 +292,6 @@ ARP packets the original sender will then pick another IP address and
 repeat the process. If it does not receive a response it then broadcasts
 twice an ARP packet asserting this computer's use of the chosen IP
 address.
-
-TODO
 
 %\subsection*{IEEE 1394 FireWire}
 
@@ -342,16 +366,23 @@ table cell contains comma separated running time in seconds and number of visite
 states of the MDP\footnote{The number of states is, unlike running time,
 agnostic to implementation details.}\textsuperscript{,}\footnote{Value iteration has to construct the
 whole model in memory so the number of states it visits is the total
-number of states.}. Each experiment was repeated
-ten times and the results were averaged\footnote{There was no
+number of states.}. Each experiment shown in the tables below was repeated
+at least five times and the results were averaged\footnote{There was no
 significant variance in the measured times so averaging provides
 representative results.}.
 
-TODO: describe the machine and JVM configuration.
+We used a machine equipped with
+40 cores of \verb|Intel(R) Xeon(R)| \verb|CPU E5-2630 v4 @ 2.20GHz| processors,
+OpenJDK Runtime Environment 1.8 and JVM configured to use 4 GB of memory
+and 512 MB stack size.
 
-TODO: set up an example
-runbenchmarks script so that anyone can verify our results right away.
-TODO: Our full results are stored in measurements attached with the thesis
+Our benchmarking script which allows to describe each measurement
+in an easy, declarative way is described in the appendix. See
+\verb|prism/prism/tests/reachability/scripts/run_benchmark.py| for
+\linebreak an example.
+Results of many measurements, some of which were selected for the tables
+presented later, can be found in directory \linebreak \verb|benchmarks| together
+with a script for transforming them into a \LaTeX\ table.
 
 In \autoref{table:general_comparison} we can see
 TODO: Table 1, comparison of VI, BRTDP, BRTDP-UCB, MCTS-BRTDP on the
@@ -380,14 +411,14 @@ TODO: Impact of UCB constant.
 
 \begin{table}
 \begin{tabularx}{\textwidth}{ l  | c | c | c | c | c }
-     & VI          &  BRTDP, MAX-DIFF   & BRTDP-UCB & MCTS-BRTDP \\
-zeroconf $N=1, K=10$ &        204, &   \\
-zeroconf $N=x, K=z$ &        204, &   \\
-zeroconf $N=y, K=zz$ &        204, &   \\
-wlan6 &        204, &   \\
-coin... &        204, &   \\
-leader &        204, &   \\
-mer &        204, &   \\
+                     & VI     &  BRTDP, MAX-DIFF   & BRTDP-UCB & MCTS-BRTDP \\
+zeroconf $N=15,  K=10$ &        204, &   \\
+zeroconf $N=20,  K=10$ &        204, &   \\
+zeroconf $N=20, K=20$  &   &   \\
+zeroconf $N=100, K=40$ &   &   \\
+wlan6                &        204, &   \\
+coin                 &        204, &   \\
+leader               &        204, &   \\
 \end{tabularx}
 \caption{Comparison on standard PRISM models}
 \label{table:general_comparison}
@@ -396,7 +427,10 @@ mer &        204, &   \\
 \begin{table}
 \begin{tabularx}{\textwidth}{ l  | c | c  }
 branch\_zeroconf &  BRTDP, MAX-DIFF   &   VI      \\
-$N=1, K=10$      &               46,  &       204, \\
+$N=10,  K=10$ & \\
+$N=30,  K=10$ & \\
+$N=140, K=40$ &
+
 \end{tabularx}
 \caption{caption}
 \label{table:branch_zconf}

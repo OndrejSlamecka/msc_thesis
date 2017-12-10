@@ -19,14 +19,15 @@ the root node).
 
 In the VCB (Victory Confidence Bound), $v_i$ is the number of times a
 target state has been hit when rolling out from state $i$ or its child.
-TODO: However experiments show its performance is similar to UCB.
+However experiments show its performance is similar to UCB in
+practice or worse on some examples.
 \[
     VCB_i = \frac{v_i}{n_i} + C \sqrt{ \frac{2 \ln n}{n_i} }
 \]
 
 Furthermore we experimented with a formula which would utilize our
-confidence in the learned upper bound but experiments show its
-performance is very bad (TODO: check this is the case on more models).
+confidence in the learned upper bound but found out that on our models
+its performance is very bad.
 \[
     CCB_i = U_i (1 - (U_i - L_i)) + C \sqrt{ \frac{2 \ln n}{n_i} }
 \]
@@ -49,8 +50,12 @@ nodes on the taken tree path. Compare this with the usual MCTS
 implementation where this is not necessary and updates are performed
 only on the tree path.
 
+Functions \textsc{TreePolicy} and \textsc{Rollout} are implemented as in
+\autoref{alg:uct}. \textsc{TreePolicy} uses one of the formulas
+described at the beginning of this chapter.
+
 This algorithm is an improvement upon random sampling as it guides the
-random rollouts towards the parts of the decision process which seem
+random rollouts towards the parts of the decision process which look
 more relevant for maximizing the sought probability.
 
 \begin{algorithm}
@@ -66,15 +71,6 @@ more relevant for maximizing the sought probability.
     \EndWhile
     \State \Return Action from $v_0$ to the best node (by some
     given metric).
-\EndFunction
-
-\Function{Rollout}{$s$}
-TODO
-\EndFunction
-
-\Function{TreePolicy}{$s$}
-\Repeat
-\Until{$s \neq s_0$}
 \EndFunction
 
 \Function{Backup}{$s_0, s$}
@@ -101,6 +97,11 @@ lists of nodes in the tree is maintained and each time a MEC is
 collapsed, the subtrees in the MCTS tree corresponding to the nodes
 representing a state in the MEC are removed.
 
+This ensures that the algorithm maintains a consistent representation of
+the MDP throughout the computation. Since MCTS does not restrict BRTDP
+access to any part of the MDP it follows that the algorithm almost
+surely converges to the correct value.
+
 \begin{algorithm}
 \caption{MCTS-BRTDP}
 \label{mcts-brtdp}
@@ -117,12 +118,6 @@ representing a state in the MEC are removed.
 
 \end{algorithmic}
 \end{algorithm}
-
-
-
-TODO:
-is this almost surely correct algorithm?
-I would say it is, as we know BRTDP is almost surely correct, MCTS eventually explores everything and the MCTS tree has always correct view of the actual MDP. So then it falls to the correctness of the update, which is the Bellman update, so it is ok.
 
 \section{UCB in BRTDP}
 

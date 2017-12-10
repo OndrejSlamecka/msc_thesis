@@ -1,35 +1,51 @@
 \chapter{Introduction}
 
-A rover called Curiosity landed on Mars in August 2012 and is performing
-research in the Gale crater since then. It has to make decisions with
-uncertain consequences to maximize its scientific output but also to maintain
-operational state.
+%A rover called Curiosity landed on Mars in August 2012 and is performing
+%research in the Gale crater since then. It has to make decisions with
+%uncertain consequences to maximize its scientific output but also to maintain
+%operational state.
 
 Zero-configuration networking is a protocol for automatically setting up
-computer networks without need for external help. The computers
+computer networks without the need for external help. The computers
 select their IP addresses in the created network randomly with the goal
 to achieve a working configuration.
 
-Science models these and many similar real-world problems with {\em
-Markov Decision Processes} (MDPs). The participants in these processes take
+Another protocol is IEEE 802.11 Wireless LAN for communication
+of wireless network devices. Part of the protocol describes what to do
+when two signals are sent simultaneously and collide. The senders then
+use random delays to avoid subsequent collisions.
+
+%Scientists models these and many similar real-world problems with {\em
+%Markov Decision Processes} (MDPs). The participants in these processes take
+%actions of their choice but the results of these actions are not
+%certain -- the rover may finish an experiment with high probability but
+%also break with small, the network may be configured with high
+%probability or not with small.
+
+Scientists model these and many similar real-world problems with {\em
+Markov Decision Processes} (MDPs). Controllers in these processes take
 actions of their choice but the results of these actions are not
-certain -- the rover may finish an experiment with high probability but
-also break with small, the network may be configured with high
-probability or not with small.
+certain -- in a zero-conf network a chosen IP address might be available
+with high probability or taken with small, a signal in a wireless LAN
+might get delivered or it might collide with another signal.
 
 Various properties of Markov Decision Processes have been well studied
 in the last seventy years. The usual target is to attain the highest
-reward from the process, e.g. research as much as possible on Mars
+reward from the process, e.g., research as much as possible on Mars
 \parencite{MarsRover}.
-However in many situations it is desirable to learn what's the
-probability the process fails (rover breaks) or succeeds (the network
-configures) -- to avoid taking such actions, prevent
-adversaries from forcing them or, for the positive case, to encourage them.
+However, in many situations, it is desirable to learn what is the
+probability the process succeeds (network
+configures) or fails (signal is not delivered) --
+to encourage actions increasing the likelihood of success,
+or avoid them for the negative case.
+%to avoid taking such
+%actions, prevent adversaries from forcing them or, for the positive
+%case, to encourage them.
 
-Classical algorithms for MDP verification (the act of proving
-properties) based on dynamic programming can be used for finding the
+Classical algorithms for verification (proving properties) of MDPs
+based on dynamic programming can be used for finding the
 maximum probability of failure (maximum over all possible decisions in
-each step -- strategies). Under some circumstances these algorithms are
+each step -- strategies). Under some circumstances, these algorithms are
 very good but recently it has been shown that learning based methods
 like BRTDP can outperform them on many MDPs \parencite{atva14}.
 
@@ -38,26 +54,26 @@ successfully used to find high reward strategies in Markov decision
 processes. Recently the algorithm had a big success in the field of
 computer Go.
 
-In this thesis we explore how can Monte Carlo Tree Search be used to
-find strategies maximizing given properties. The result are three
-algortihms: one a variation of Upper Confidence Tree algorithm (an MCTS
-variant), one a fusion of UCT and BRTDP and the last one a BRTDP variant
+In this thesis, we explore how Monte Carlo Tree Search can be used to
+find strategies maximizing given properties. Three algorithms are
+suggested: one a variation of Upper Confidence Tree algorithm (a variant
+of MCTS), one a fusion of UCT and BRTDP and the last one a BRTDP variant
 using a part of the UCT algorithm idea.  Measurements show that these
-algorithms have advantage on several models.
+algorithms have an advantage on several models.
 
 The thesis is structured as follows. After this introduction, the second
 chapter is devoted to Markov Decision Processes and prior work on their
 verification.
 The third chapter describes Monte Carlo Tree Search and its application
 to maximizing rewards in MDPs and games. In the fourth chapter our new
-algorithms are described. In the fifth chapter
+algorithms are described. In the fifth chapter,
 the algorithms are evaluated on models available with the PRISM project
 as well as models newly created specifically for better comparison.
 The sixth chapter concludes the
 results with suggestions for future work.
 
 The results in the fourth and fifth chapters are original results of
-collaboration of Pranav Ashok, Tomáš Brázdil, Jan Křetínský and the
+a collaboration of Pranav Ashok, Tomáš Brázdil, Jan Křetínský and the
 author of this thesis. The MCTS-BRTDP algorithm was suggested by the
 author of this thesis and the BMCTS and BRTDP-UCB algorithms by Pranav
 Ashok. The algorithms were implemented as part of the PRISM model
