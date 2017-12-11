@@ -132,9 +132,9 @@ algorithm.
 
 MCTS-BRTDP is a variation of BMCTS in which each rollout is a
 single iteration of BRTDP as described in \autoref{ch_mdp}. This allows
-for significantly faster updates as compared to BMCTS but still
-utilizing exploration which makes it possible to overcome parts of the
-MDP which are hard for BRTDP.
+for significantly faster updates of the bounds as compared to BMCTS but
+still utilizing exploration which makes it possible to overcome parts of
+the MDP which are hard for BRTDP.
 
 The functions \textsc{TreePolicy} and \textsc{TreeBackup} are implemented in
 the same way as in \autoref{alg_bmcts}. Note that we avoid using
