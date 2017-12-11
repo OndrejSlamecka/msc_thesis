@@ -7,7 +7,7 @@ bounds. The second, MCTS-BRTDP, is a fusion of MCTS, where each
 rollout is a single iteration of BRTDP.  The third one is called
 BRTDP-UCB and uses the UCB formula to select the next action in BRTDP.
 
-First, recall from \autoref{sec:brtdp} that $L,U : S \times
+Before proceeding, recall from \autoref{sec:brtdp} that $L,U : S \times
 A \to [0,1]$, where $S, A$ are the sets of states and actions of an MDP,
 are the lower and upper bounds of the value function $V$.
 The section also defined
@@ -15,12 +15,12 @@ $U(s) = \max_{a \in E(s)} U(s, a)$
 and
 $L(s) = \max_{a \in E(s)} L(s, a)$.
 
-These algorithms can be altered by changing the tree node selection
-heuristic. We suggest and evaluate two formulas, UCB and VCB.
-Here $n_i$ is the number of visits of the node and $n$ is the number of
-iterations (visits of the root node).
+The algorithms we suggest can be altered by changing the tree node
+selection heuristic. We suggest and evaluate three formulas: UCB, VCB,
+CCB.  Here $n_i$ is the number of visits of the node and $n$ is the
+number of iterations (visits of the root node).
 \begin{equation*}
-    UCB_i = U_i + C \sqrt{ \frac{2 \ln n}{n_i} }
+    UCB(i) = U(i) + C \sqrt{ \frac{2 \ln n}{n_i} }
 \end{equation*}
 
 In the VCB (Victory Confidence Bound), $v_i$ is the number of times a
@@ -28,14 +28,14 @@ target state has been hit when rolling out from state $i$ or its child.
 However experiments show its performance is similar to UCB in
 practice or worse on some examples.
 \[
-    VCB_i = \frac{v_i}{n_i} + C \sqrt{ \frac{2 \ln n}{n_i} }
+    VCB(i) = \frac{v_i}{n_i} + C \sqrt{ \frac{2 \ln n}{n_i} }
 \]
 
 Furthermore we experimented with a formula which would utilize our
 confidence in the learned upper bound but found out that on our models
 its performance is very bad.
 \[
-    CCB_i = U_i (1 - (U_i - L_i)) + C \sqrt{ \frac{2 \ln n}{n_i} }
+    CCB(i) = U(i) (1 - (U(i) - L(i))) + C \sqrt{ \frac{2 \ln n}{n_i} }
 \]
 
 \pagebreak
