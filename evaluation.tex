@@ -357,16 +357,17 @@ product set of the set of strategies for each of the modules).
 On the following pages we present the results of our measurements.
 In the presented tables rows correspond to models and their
 configuration, columns to methods and chosen tree heuristic constant (in
-parenthesis). Each
-table cell contains comma separated running time in seconds and number of visited
-states of the MDP\footnote{The number of states is, unlike running time,
-agnostic to implementation details.}\textsuperscript{,}\footnote{Value iteration has to construct the
+parenthesis). Each table cell contains comma separated running time in
+seconds and number of visited states of the MDP\footnote{The number of
+states is, unlike running time, agnostic to implementation details.}\textsuperscript{,}\footnote{Value iteration has to construct the
 whole model in memory but we show the number of states after VI
 preprocessing.}. Hyphen denotes timeout or insufficient memory.
-Each experiment shown in the tables below was repeated at least five
-times and the results were averaged\footnote{There was no significant
-variance in the measured times so averaging provides representative
-results.}.
+
+Each experiment shown in the tables below was repeated five
+times and the results were averaged. There was no significant
+variance in the measured times, so the number of repetitions is
+sufficient and averaging provides representative results. We set
+$\epsilon$ to $10^{-6}$.
 
 We used a machine equipped with
 40 cores of \verb|Intel(R) Xeon(R)| \verb|CPU E5-2630 v4 @ 2.20GHz| processors,

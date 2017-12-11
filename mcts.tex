@@ -48,9 +48,19 @@ tree guides the search to balance between exploitation of known good
 strategies and exploration of new strategies. When the search leaves the
 tree, it adds one layer of new nodes, proceeds at random from one of the
 new nodes, and upon terminating it updates the ancestors of the node
-with the result.  The stages are usually called {\em selection}, {\em
-expansion}, {\em simulation}, {\em backpropagation}.  The algorithm is
-summarized in \autoref{mcts}.
+with the result. The algorithm can be splt into four stages:
+
+\begin{enumerate}
+    \item {\em Selection} -- \textsc{TreePolicy} traverses the tree
+        until a leaf is reached. Often a greedy choice of node
+        maximising a heuristic value.
+    \item {\em Expansion} -- if the leaf's corresponding state is not
+        terminal, then nodes for its succcessors are added to the tree.
+    \item {\em Simulation} -- traverse the MDP from state of one of the new
+        nodes in a random or greedy manner until a terminal state is reached.
+    \item {\em Backpropagation} -- update the path from the selected
+        node to the root with the result of the simulation.
+\end{enumerate}
 
 
 \begin{algorithm}
@@ -327,9 +337,7 @@ which is equivalent to the first definition in zero-sum games.}. If both players
 minimax strategy, the strategy profile is a Nash
 equilibrium\footnote{
 A strategic profile is a Nash equilibrium, if no player can get a higher
-reward by switching a strategy.
-    }$^,$\footnote{The {\em minimax theorem} was proven by John
-von Neumann.}.
+reward by switching a strategy.}.
 
 The {\em minimax algorithm} computes the value of each leaf in a game
 tree assuming the opponent tries to harm the player as much as

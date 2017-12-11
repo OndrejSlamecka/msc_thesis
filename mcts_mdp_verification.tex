@@ -7,12 +7,18 @@ bounds. The second, MCTS-BRTDP, is a fusion of MCTS, where each
 rollout is a single iteration of BRTDP.  The third one is called
 BRTDP-UCB and uses the UCB formula to select the next action in BRTDP.
 
+First, recall from \autoref{sec:brtdp} that $L,U : S \times
+A \to [0,1]$, where $S, A$ are the sets of states and actions of an MDP,
+are the lower and upper bounds of the value function $V$.
+The section also defined
+$U(s) = \max_{a \in E(s)} U(s, a)$
+and
+$L(s) = \max_{a \in E(s)} L(s, a)$.
+
 These algorithms can be altered by changing the tree node selection
-heuristic. We suggest and evaluate two formulas, UCB and VCB. Here $U_i$
-is the known upper bound (of the sought probability) in the state
-corresponding to the tree node $i$, $n_i$ is the number of visits of the
-node and $n$ is the number of iterations (visits of
-the root node).
+heuristic. We suggest and evaluate two formulas, UCB and VCB.
+Here $n_i$ is the number of visits of the node and $n$ is the number of
+iterations (visits of the root node).
 \begin{equation*}
     UCB_i = U_i + C \sqrt{ \frac{2 \ln n}{n_i} }
 \end{equation*}
@@ -38,27 +44,41 @@ its performance is very bad.
 
 BMCTS is an algorithm which implements the general MCTS scheme in the
 most straightforward way while guaranteeing approximate correctness of
-the result.  The tree node selection is made using the heuristics
-described above, in each step of each rollout the action is chosen
-uniformly at random.
+the result.
 
-The primary distinction is in the update phase. To maintain the lower and
-upper bounds, backpropagation using the Bellman update is performed
-from the final state of the rollout to the state corresponding to
-the selected tree node, and then on the states corresponding to the
-nodes on the taken tree path. Compare this with a typical MCTS
-implementation where this is not necessary and updates are performed
-only on the tree path.
-
-Functions \textsc{TreePolicy} and \textsc{Rollout} are implemented as in
-\autoref{alg:uct}. \textsc{TreePolicy} uses one of the formulas
+Function \textsc{TreePolicy} is implemented as in
+\autoref{alg:uct} and uses one of the formulas
 described at the beginning of this chapter.
+In each step of each rollout the action is chosen
+uniformly at random and a state is then sampled according to the
+transition distribution (like the HIGH-PROB variant of BRTDP).
+
+The primary distinction is in the backpropagation phase. To maintain the lower
+and upper bounds, backpropagation using the Bellman update is performed
+first in the MDP (\textsc{Backup}), and then in the tree (\textsc{TreeBackup}).
+
+\textsc{Backup}: Perform Bellman updates from the terminal state reached in the
+rollout to the state corresponding to the selected tree node. This is
+the same procedure as in BRTDP.
+
+\textsc{TreeBackup}: Perform Bellman updates from the states
+corresponding to the nodes on the taken tree path. Here the algorithm
+updates the bounds for every action as the tree does not differentiate
+between actions.
+
+Compare this backpropagation with a typical MCTS implementation where
+this is not necessary and updates are performed only on the tree path.
+
 
 This algorithm is an improvement upon random sampling as it guides the
 random rollouts towards the parts of the decision process which look
-more relevant for maximizing the sought probability.
+more relevant for maximizing the sought probability. However, the random
+rollouts prove to be ineffective in practice, which leads us to our main
+algorithm.
 
-\begin{algorithm}
+\newpage
+
+\begin{algorithm}[H]
 \caption{BMCTS}
 \label{alg_bmcts}
 \begin{algorithmic}
@@ -66,22 +86,47 @@ more relevant for maximizing the sought probability.
     \State Let $v_0$ be the root of the MCTS tree, with $v_0.state = s_0$.
     \While{$U(s_0) - L(s_0) > \epsilon$}
         \State $v_l \gets \Call{TreePolicy}{v_0}$
-        \State $\Delta \gets \Call{Rollout}{v_l}$
-        \State $\Call{Backup}{v_l, \Delta}$
+        \State $\omega \gets \Call{Rollout}{v_l.state}$
+        \State $\Call{Backup}{\omega}$
+        \State $\Call{TreeBackup}{v_l}$
     \EndWhile
-    \State \Return Action from $v_0$ to the best node (by some
-    given metric).
+    \State \Return $(L(s_0), U(s_0))$
 \EndFunction
 
-\Function{Backup}{$s_0, s$}
-\Repeat
+\Function{Rollout}{s}
+    \State $\omega \gets s$
+    \While{$last(\omega)$ is not terminal}
+        \State $a \gets$ sample uniformly from $E(s)$
+        \State $s \gets$ sample according to $\Delta(last(\omega),a)$
+        \State $\omega \gets \omega \; a \; s$
+    \EndWhile
+    \State \Return $\omega$
+\EndFunction
+
+\Function{Backup}{$\omega$}
+\While{$\omega$ is not empty}
+    \State $pop(\omega)$
+    \State $a \gets pop(\omega)$
+    \State $s \gets pop(\omega)$
     \State $U(s,a) \coloneqq \sum_{s' \in S} \Delta(s,a)(s')U(s')$
     \State $L(s,a)\, \coloneqq \sum_{s' \in S} \Delta(s,a)(s')L(s')$
-    \State $s \gets parent(s)$
-\Until{$s \neq s_0$}
+\EndWhile
+\EndFunction
+
+\Function{TreeBackup}{$v$}
+\State $v \gets v.parent$ \Comment{The leaf's update was done in \textsc{Backup}}
+\While{$v \neq v_0$}
+    \State $s \gets v.state$
+    \For{$a \in E(s)$}
+        \State $U(s,a) \coloneqq \sum_{s' \in S} \Delta(s,a)(s')U(s')$
+        \State $L(s,a)\, \coloneqq \sum_{s' \in S} \Delta(s,a)(s')L(s')$
+    \EndFor
+    \State $v \gets v.parent$
+\EndWhile
 \EndFunction
 \end{algorithmic}
 \end{algorithm}
+
 
 \section{MCTS-BRTDP}
 
@@ -91,8 +136,11 @@ for significantly faster updates as compared to BMCTS but still
 utilizing exploration which makes it possible to overcome parts of the
 MDP which are hard for BRTDP.
 
-The functions \textsc{TreePolicy} and \textsc{Backup} are implemented in
-the same way as in \autoref{alg_bmcts}. Furthermore a map from states to
+The functions \textsc{TreePolicy} and \textsc{TreeBackup} are implemented in
+the same way as in \autoref{alg_bmcts}. Note that we avoid using
+\textsc{Backup} as that is done by BRTDP.
+
+The implementation of BRTDP used here maintains a map from states to
 lists of nodes in the tree is maintained and each time a MEC is
 collapsed, the subtrees in the MCTS tree corresponding to the nodes
 representing a state in the MEC are removed.
@@ -110,8 +158,8 @@ surely converges to the correct value.
     \State Let $v_0$ be the root of the MCTS tree, with $v_0.state = s_0$.
     \While{$U(s_0) - L(s_0) > \epsilon$}
         \State $v_l \gets \Call{TreePolicy}{v_0}$
-        \State $\Delta \gets \text{an iteration of } \Call{BRTDP}{v_l}$
-        \State $\Call{Backup}{v_l, \Delta}$
+        \State an iteration of $\Call{BRTDP}{v_l}$
+        \State $\Call{TreeBackup}{v_l}$
     \EndWhile
     \State \Return $(L(s_0), U(s_0))$
 \EndFunction
