@@ -12,7 +12,7 @@ PRISM \parencite{prism}
 ({\em probabilistic model checker}) is a program/framework
 for formal modelling and analysis of probabilistic systems.
 We show how to use PRISM to describe MDPs, their properties,
-and how to check them.
+%and how to check them.
 
 \subsection*{Describing MDPs with the PRISM language}
 PRISM has a language for description of Markov decision processes
@@ -34,22 +34,6 @@ and so on.
 \begin{verbatim}
 [act] guard -> prob_1 : update_1 + prob_2 : update_2 + ...
 \end{verbatim}
-
-An example module is described below and is equivalent to the MDP
-depicted in \autoref{moduleM}.
-
-\smallskip
-\begin{verbatim}
-mdp // Tell PRISM this file describes an MDP
-module M
-    s : [0 .. 3] init 0;
-    [a] s=0 -> (s'=0);
-    [b] s=0 -> 0.9:(s'=1) + 0.1:(s'=0);
-    [c] s=1 -> 0.9:(s'=2) + 0.1:(s'=1);
-    [d] s=2 -> (s'=2);
-endmodule
-\end{verbatim}
-\smallskip
 
 \begin{figure}
 \begin{tikzpicture}
@@ -79,6 +63,23 @@ endmodule
 \label{moduleM}
 \end{figure}
 
+An example module is described below and is equivalent to the MDP
+depicted in \autoref{moduleM}.
+
+\smallskip
+\begin{verbatim}
+mdp // Tell PRISM this file describes an MDP
+module M
+    s : [0 .. 3] init 0;
+    [a] s=0 -> (s'=0);
+    [b] s=0 -> 0.9:(s'=1) + 0.1:(s'=0);
+    [c] s=1 -> 0.9:(s'=2) + 0.1:(s'=1);
+    [d] s=2 -> (s'=2);
+endmodule
+\end{verbatim}
+\smallskip
+
+
 A property we might be interested in is the maximum probability of
 eventually reaching state \verb|s=2|, this could be described to PRISM
 with the string \verb|Pmax=? [F s=2]|, where $F$ represents the
@@ -102,7 +103,7 @@ argument and \verb|-pf| specifies the property we want to check.
 The \verb|-ex| flag will be described later.
 Running the command below
 confirms our expectations: the maximum probability of eventually
-reaching state \verb|s=2| is 1. If not specificed otherwise, the
+reaching state \verb|s=2| is 1. If not specified otherwise, the
 algorithm used is value iteration.
 
 \medskip
@@ -154,17 +155,17 @@ which is when the heuristic methods perform so well.
 
 We describe how the pseudocode described in \autoref{ch_mcts} maps to
 the implementation in PRISM. The implementation can be found in
-\verb|prism/prism/src/heuristics|.
+\verb|prism/prism/src/heuristics| attached to the thesis.
 
 To represent the MCTS tree we use classes \verb|MCTree.java| and
 \linebreak
-\verb|MCNode.java|. The tree class has an important method \verb|unfold|
+\verb|MCNode.java|. The tree class has method \verb|unfold|
 which asks the model generator to add the next states of a given state
-to the explicit model and adds them to the tree.
+to the explicit model, and adds them to the tree.
 
 The next state heuristics are implemented in a straightforward way
-inside directory \verb|nextstate|. The UCB heuristic is implemented in
-directory \verb|treeheuristic|.
+inside directory \verb|nextstate|. The tree heuristics described earlier
+are implemented in directory \verb|treeheuristic|.
 
 MCTS-BRTDP is implemented in \verb|search/MctsBrtdp.java|. The entry
 point is \verb|computeProb|, subsequently
@@ -178,20 +179,21 @@ the values using updates to the root.
 
 As we have observed problems only once during thousands of runs on our
 models, we have not implemented the removal of subtrees induced by nodes
-corresponding to a state which is contained in a collapsed MEC.
+corresponding to a state which is contained in a collapsed MEC. The
+increase in complexity of such implementation should not be significant.
 
 BMCTS is implemented by modifying MCTS-BRTDP. The modification is turned
 on when the flag \verb|next_action 5| is added to a command using
 MCTS-BRTDP. This change makes the BRTDP implementation chose next action
-uniformly at random instead of the BRTDP-way by upper bound.
+uniformly at random instead of MAX-DIFF or HIGH-PROB.
 
 \section{Behaviour on Small Models}
 
-For small models we used visualization to observe how MCTS-BRTDP solves
+For small models, we used visualization to observe how MCTS-BRTDP solves
 them. To render the progress of MCTS-BRTDP into a series of pictures,
-the last lines of \verb|MctsBrtdp.monteCarloTreeSearch| has to be uncommented.
-Due to the randomized nature of the algortihms a researcher should
-observe more runs before making conclusions.
+the last lines of \verb|MctsBrtdp.monteCarloTreeSearch| have to be
+uncommented.  Due to the randomized nature of the algorithms,
+a researcher should observe more runs before making conclusions.
 
 Three simple models are presented with a description of the methods'
 approach to solving them.
@@ -239,7 +241,7 @@ From the initial state there is an action to go left with probability
 effect but reversed probabilities.
 
 MAX-DIFF BRTDP quickly learns that the upper bound in right part is
-zero, abandonds this part of the MDP to focus on the left part and learn
+zero, abandons this part of the MDP to focus on the left part and learn
 its upper and lower bound 0.8.
 
 MCTS-BRTDP is forced to explore the right part too but learns the
@@ -261,47 +263,40 @@ target way (as quickly as the exploited parts).
 Experimental evaluation was done mainly on standard models
 distributed with PRISM. Most of the MDPs described by these models are
 concerned with network configuration where randomness plays important
-role in achieving a common goal. We provide a brief, incomplete
-description of the {\em zeroconf} model to offer basic familiarity and
+role in achieving a common goal.
+%We provide a brief, incomplete
+%description of the {\em zeroconf} model to offer basic familiarity and
+We
 refer the reader to thorough descriptions of all the models on PRISM's
-website
-\href{http://www.prismmodelchecker.org/casestudies/}{www.prismmodelchecker.org/casestudies/}.
+website.
+%\href{http://www.prismmodelchecker.org/casestudies/}{www.prismmodelchecker.org/casestudies/}.
+
+The description of the standard models in the PRISM language can be
+found inside \verb|prism/tests/reachability/models| in the source codes
+attached to this thesis. The properties checked are defined in
+\verb|prism/tests/reachability/scripts/benchmark.py| for each model.
 
 We also created new MDPs by combining the PRISM models with the MDP
 which is hard for BRTDP (\autoref{brtdp_adversary}). We describe them in
 the last subsection.
 
-The description of all the models in the PRISM language can be found inside
-\verb|tests/reachability/models| in the source codes attached to this
-thesis.
+%\subsection*{Zero-configuration networking}
 
-\subsection*{Zero-configuration networking}
+%{\em
+%Zeroconf}\footnote{\href{http://www.prismmodelchecker.org/casestudies/zeroconf.php}{http://www.prismmodelchecker.org/casestudies/zeroconf.php}} model corresponds to a set of computers establishing a
+%network without a given leader. Such leader could be a human setting
+%static IP addresses or a DHCP server which would need to be configured
+%up front -- in both cases there is extra work required.
 
-{\em
-Zeroconf}\footnote{\href{http://www.prismmodelchecker.org/casestudies/zeroconf.php}{http://www.prismmodelchecker.org/casestudies/zeroconf.php}} model corresponds to a set of computers establishing a
-network without a given leader. Such leader could be a human setting
-static IP addresses or a DHCP server which would need to be configured
-up front -- in both cases there is extra work required.
-
-The zero-configuration networking protocol describes how should the
-computers proceed. Upon connecting to the network a computer picks an IP
-address at random and broadcasts its choice via an ARP packet called
-{\em probe} repeated $K$ times ($K=4$ by the standard) with two second
-delay. If another computer responds to one these
-ARP packets the original sender will then pick another IP address and
-repeat the process. If it does not receive a response it then broadcasts
-twice an ARP packet asserting this computer's use of the chosen IP
-address.
-
-%\subsection*{IEEE 1394 FireWire}
-
-%FireWire is an interface standard for serial bus
-
-%\subsection*{Wireless LAN}
-
-%\subsection*{Randomised Consensus Shared Coin Protocol}
-
-%\subsection*{mer}
+%The zero-configuration networking protocol describes how should the
+%computers proceed. Upon connecting to the network a computer picks an IP
+%address at random and broadcasts its choice via an ARP packet called
+%{\em probe} repeated $K$ times ($K=4$ by the standard) with two second
+%delay. If another computer responds to one these
+%ARP packets the original sender will then pick another IP address and
+%repeat the process. If it does not receive a response it then broadcasts
+%twice an ARP packet asserting this computer's use of the chosen IP
+%address.
 
 \subsection*{Combining PRISM models with BRTDP adversary}
 
@@ -367,17 +362,18 @@ table cell contains comma separated running time in seconds and number of visite
 states of the MDP\footnote{The number of states is, unlike running time,
 agnostic to implementation details.}\textsuperscript{,}\footnote{Value iteration has to construct the
 whole model in memory but we show the number of states after VI
-preprocessing.}. Each experiment shown in the tables below was repeated
-at least five times and the results were averaged\footnote{There was no
-significant variance in the measured times so averaging provides
-representative results.}.
+preprocessing.}. Hyphen denotes timeout or insufficient memory.
+Each experiment shown in the tables below was repeated at least five
+times and the results were averaged\footnote{There was no significant
+variance in the measured times so averaging provides representative
+results.}.
 
 We used a machine equipped with
 40 cores of \verb|Intel(R) Xeon(R)| \verb|CPU E5-2630 v4 @ 2.20GHz| processors,
 OpenJDK Runtime Environment 1.8 and JVM configured to use 4 GB of memory
 and 512 MB stack size.
 
-Our benchmarking script which allows to describe each measurement
+Our benchmark script which allows to describe each measurement
 in an easy, declarative way is described in the appendix. See
 \verb|prism/prism/tests/reachability/scripts/run_benchmark.py| for
 \linebreak an example.
@@ -410,20 +406,22 @@ The impact of tree heuristic constant is usually trivial and we did not
 observe any cases where it would be beneficial to fine-tune the
 constant. As it forces exploration, significant increases beyond a small
 useful value just increased the number of explored states. This can be
-seen in table TODO.
+seen in table TODO. (mcts-brtdp-md with ucb in 0.1,0.4,0.7,1,2,4,8,12,16
+on firewire?)
 
 \begin{landscape}
 
 \begin{table}
-\begin{tabularx}{\textwidth}{ l  | c | c | c | c | c }
+\begin{tabularx}{\textwidth}{ l  | c | c | c | c }
                    & VI           &  BRTDP, MD       & MCTS-BRTDP-MD (0.5) & BRTDP-UCB (0.5)  \\
 z-conf $N=15,  K=10$ & 205, 184k    &  0.93, 762       & 0.114, 819          &  12, 415         \\
 z-conf $N=20,  K=10$ & 213, 184k    &  0.104, 769      & 0.110, 818          & 12.4, 436        \\
 z-conf $N=20, K=20$  & -            &  0.129, 1172     & 0.172, 1208         & 12.7, 605        \\
-z-conf $N=100, K=40$ & 16.2, 354k &  0.27, 2191        & 0.268, 2375         & -                \\
-wlan6                &        204, &   \\
-coin                 &        204, &   \\
-leader               &        204, &   \\
+z-conf $N=100, K=40$ & 16.2, 354k   &  0.27, 2191      & 0.268, 2375         & -                \\
+firewire           &              &                  &                     & \\
+wlan6              & -            &                  &                     & \\
+coin               &              & -                &                     & \\
+leader             &              &                  &                     &
 \end{tabularx}
 \caption{Comparison on standard PRISM models.}
 \label{table:general_comparison}
@@ -431,10 +429,10 @@ leader               &        204, &   \\
 
 \begin{table}
 \begin{tabularx}{\textwidth}{ l  | c | c | c }
-branch\_zeroconf &  BRTDP, MD  & MCTS-BRTDP-MD (0.5) &   VI      \\
-$N=10,  K=10$      &   \\
-$N=30,  K=10$      & \\
-$N=140, K=40$      &
+branch-zeroconf &    VI       & MCTS-BRTDP-MD (0.5) & BRTDP, MD  \\
+$N=10,  K=10$     & 205, 1847k  &                     &            \\
+$N=30,  K=10$     & 206, 1847k  &                     &            \\
+$N=140, K=40$     & 16.5, 353k  &                     &
 \end{tabularx}
 \caption{Comparison on a ``branch'' model.}
 \label{table:branch_zconf}

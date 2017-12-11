@@ -1,8 +1,8 @@
 \chapter{Benchmarking}
 
 To allow the reader to benchmark our implementation we are providing a
-brief description of how to use, modify and interpret the results of
-our benchmarking script.
+brief description of how to use, modify, and interpret the results of
+our benchmark script.
 
 Our core benchmark script with definitions is to be found in \linebreak
 \verb|prism/tests/reachability/scripts/benchmark.py|, in the same
@@ -11,7 +11,7 @@ actual benchmark to be run.
 
 For every model there is a class like \verb|ZeroconfParameters|, whose
 objects hold the configuration necessary to run a benchmark of the model.
-To generate an uncofigured instance of the class use a function starting
+To generate an unconfigured instance of the class use a function starting
 with \verb|empty_|, e.g., \verb|empty_ZeroconfParameters()|.
 
 Now the parameters object needs to be configured. If the model
@@ -77,4 +77,4 @@ For convenience the script offers function \verb|yield_generators_list|
 which takes a list of generator objects and returns a single generator
 with the same functionality as the passed objects together.
 As we did not need to change the allowed time to run the script we have
-hardcoded value called \verb|timeout| in \verb|benchmark.py|.
+hard-coded value called \verb|timeout| in \verb|benchmark.py|.

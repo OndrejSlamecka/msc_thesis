@@ -1,13 +1,13 @@
 \chapter{Monte Carlo Tree Search}
 \label{ch_mcts}
 
-Monte Carlo methods\footnote{Not to be confused with
-Monte Carlo algorithms which are precisely defined as the algorithms
-solving the decision problems in classes BPP and RP.} are using random sampling to estimate the correct
-solution to a problem. The first serious use of Monte Carlo methods was
-by Stanislaw Ulam and John von Neumann during their work on the
-Manhattan project, but the technique has since spread into many areas of
-science due to its general applicability.
+Monte Carlo methods\footnote{Not to be confused with Monte Carlo
+algorithms which are precisely defined as the algorithms solving the
+decision problems in classes BPP and RP.} are using random sampling to
+estimate a correct solution to a problem. The first practical use of Monte
+Carlo methods was by Stanislaw Ulam and John von Neumann during their
+work on the Manhattan project, but the technique has since spread into
+many areas of science due to its general applicability.
 
 One of the celebrated Monte Carlo methods
 is the simulated annealing algorithm (so called due to its
@@ -37,18 +37,20 @@ in MDPs and games. The chapter is based mostly on a thorough MCTS survey
 paper \parencite{mcts_survey}.
 
 Since the research into MCTS focuses mainly on using MCTS for reward
-maximization we demonstrate the algorithms on the reward maximization
+maximization, we demonstrate the algorithms on the reward maximization
 problem too in this chapter unlike the rest of the thesis.
 
 \section{General MCTS Scheme}
 
-MCTS iteratively builds a tree which approximates possible resulting
-rewards of strategies in the decision process. In each iteration, the
+MCTS iteratively builds a tree which approximates possible rewards
+attainable by strategies in the decision process. In each iteration, the
 tree guides the search to balance between exploitation of known good
 strategies and exploration of new strategies. When the search leaves the
-tree it proceeds at random and upon terminating it adds a new leaf to
-the tree and updates its ancestors with the result. This is summarized
-in \autoref{mcts}.
+tree, it adds one layer of new nodes, proceeds at random from one of the
+new nodes, and upon terminating it updates the ancestors of the node
+with the result.  The stages are usually called {\em selection}, {\em
+expansion}, {\em simulation}, {\em backpropagation}.  The algorithm is
+summarized in \autoref{mcts}.
 
 
 \begin{algorithm}
@@ -59,14 +61,29 @@ in \autoref{mcts}.
     \State Let $v_0$ be the root of the MCTS tree, with $v_0.state = s_0$.
     \While{within computational budget}
         \State $v_l \gets \Call{TreePolicy}{v_0}$
-        \State $\Delta \gets \Call{Rollout}{v_l}$
-        \State $\Call{Backup}{v_l, \Delta}$
+        \State $r \gets \Call{Rollout}{v_l}$
+        \State $\Call{Backup}{v_l, r}$
     \EndWhile
     \State \Return Action from $v_0$ to the best node (by some
     given metric).
 \EndFunction
 \end{algorithmic}
 \end{algorithm}
+
+Node $v_l$ is a leaf of the tree selected by the tree policy.
+The leaf may be expanded -- the corresponding state's successors in the
+MDP are then added as leafs.
+A simulation (rollout) then starts from a new leaf.
+$r$ is the reward gained by this rollout.
+
+After the algorithm is interrupted and asked for a result or it runs out
+of time, there are various ways how to
+choose an action in the end, for example, the most visited child might
+be chosen, or the child with the highest reward.
+
+
+\pagebreak
+
 
 \section{Upper Confidence Bound for Trees}
 
@@ -83,16 +100,16 @@ UCT_i = \overline{X}_i + C \sqrt{ \frac{2 \ln n}{n_i} }
 \end{equation}
 
 The tree is traversed greedily, in every step a node with maximal UCT
-value is chosen. Note that unvisited nodes have their UCT value equal to $\infty$.
-Importantly when a node $j$ is visited, its sibling's $i$ UCT value is
-increased as $n$ increased but $n_i$ did not -- this contributes to
-balance between exploitation of known good strategies and exploration of new.
-Constant $C$ instructs the algorithm how much weight to give to
-exploration. See \parencite{improved_mc} for insights into choice of $C$
-in some specific situations.
+value is chosen. By convention, unvisited nodes have their UCT value
+equal to $\infty$.  Importantly, when a node $j$ is visited, its
+sibling's $i$ UCT value is increased as $n$ increased but $n_i$ did not
+-- this contributes to balance between exploitation of known good
+strategies and exploration of new.  Constant $C$ instructs the algorithm
+how much weight to give to exploration. See \parencite{improved_mc} for
+insights into choice of $C$ in some specific situations.
 
 \autoref{alg:uct} is an implementation of the general scheme of \autoref{mcts}.
-As a minor simplification the algorithm expects an MDP with rewards
+As a minor simplification, the algorithm expects an MDP with rewards
 $(S,s_0,A,E,R)$ and a marked set of terminal states, such that a reward
 is paid out only when a terminal state is reached.
 
@@ -101,7 +118,7 @@ Every tree node $v$ has information about its corresponding state
 times it has been visited so far ($v.visits$), and the reward which has
 been collected after traversing through it ($v.q$, the Q refers to
 Q-learning). For a node $v$ value $v.q / v.visits$ thus represents an
-estimate of the actual attainable reward.
+estimate of the actually attainable reward.
 
 \begin{algorithm}
     \caption{Upper Confidence Bound for Trees}
@@ -167,8 +184,8 @@ A random rollout is performed, and the algorithm then adds a new node to
 the tree which allows for a more precise estimate in the chosen part of
 the tree.
 
-As UCT is the most common type of MCTS algorithm, the terms UCT and MCTS
-are often used interchangeably in literature.
+%As UCT is the most common type of MCTS algorithm, the terms UCT and MCTS
+%are often used interchangeably in literature.
 
 \section{Solving Games}
 
@@ -177,16 +194,16 @@ with definitions of games, strategies, and solutions to games. We
 proceed by presenting the standard {\em minimax} algorithm, then showing
 how MCTS can be used to solve games and how it compares with minimax.
 Lastly, we briefly compare the application of MCTS to Go and Chess.
-Observing where it performs good and where it does not provides insight
+Observing where it performs well and where it does not provides insight
 the algorithm and it is a useful starting point for understanding the results
 of evaluation in \autoref{ch_evaluation}.
 
-For a precise understanding of the model of games, we present the following
-definition.  The perfect-information in games corresponds to full
-observability in MDP.  The reader can notice other similarities with
-MDPs as well, for example, games have states, actions and enabled
-actions, as well as rewards. On the other hand, the transition function
-is deterministic in our definition.
+We present the following definition for a precise understanding of games.
+A reader can notice similarities with MDPs, for
+example, games have states, actions and enabled actions, as well as
+rewards, moreover, perfect information corresponds to complete
+information. On the other hand, the transition function is
+deterministic in our definition.
 
 \begin{definition}
     A {\em perfect-information extensive-form game}
@@ -209,8 +226,8 @@ is deterministic in our definition.
                 are no actions $a \in E(s), a' \in E(s')$ such that
                 $\Delta(s,a) = \Delta(s',a')$.
             },
-        \item $\rho : S \to N$ is the function which determines who plays in each state,
-            and finally
+        \item $\rho : S \to N$ is a function assigning who is on turn in
+            a given state, %and finally
         \item $u = (u_1,\ldots,u_{n})$ is the tuple of
             utility (payoff, reward) functions where each $u_i, i \in N$
             is a function $u_i : F \to \mathbb{R}$.
@@ -264,6 +281,8 @@ hollow node/.style={circle,draw,inner sep=1.5,minimum size=10pt}
 We assume the players are rational and thus pick strategies which
 optimize for their goals. A goal may be to maximize the player's reward,
 another goal may be to get a higher score than the opponents.
+
+\pagebreak
 
 \begin{example}
     In the game shown below let Alice be player 1 and Bob player 2.
@@ -429,7 +448,7 @@ $(N, S, s_0, F, A, E, \Delta, \rho, u)$, where players
 
 For larger games a variation called {\em minimax (negamax) search} is used, which
 performs the computation only to a limited depth, and then uses
-a heurisic to evaluate the last node it processes (unless it is a leaf).
+a heuristic to evaluate the last node it processes (unless it is a leaf).
 
 \subsection{Solving with MCTS}
 
@@ -459,14 +478,15 @@ In comparison with minimax search MCTS may ignore unimportant
 branches of the game tree and instead explore in greater detail the more
 promising branches.
 
-For example when solving a tic-tac-toe game the algorithm starts with
-the current board state in the root of the tree and then proceeds to
-add the immediate turns into the tree. They are explored with random
-rollouts and the algorithm proceeds to the parts of the tree which
-either seem to lead victory or which are insufficiently explored, the
-balance between exploitation and exploration is dependent on the choice of
-the constant in the tree heuristic. See \parencite{mcts_ttt} for an
-elaborate explanation with illustrations.
+For example, when solving a tic-tac-toe game, the algorithm starts with
+the current board state in the root of the tree, and then adds
+the nodes representing the next possible states as its children.
+They are explored with random rollouts, and the algorithm proceeds to
+the parts of the tree which either seem to lead victory or which are
+insufficiently explored. The balance between exploitation and
+exploration is dependent on the choice of the constant in the tree
+heuristic. See \parencite{mcts_ttt} for an elaborate explanation with
+illustrations.
 
 An important theoretical result is
 that MCTS converges to minimax \parencite{Kocsis},
