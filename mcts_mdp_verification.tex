@@ -37,16 +37,16 @@ its performance is very bad.
 \section{Bounded MCTS}
 
 BMCTS is an algorithm which implements the general MCTS scheme in the
-most straightforard way while maintaining guarantees about the result.
-The tree node selection is done using the
-heuristics described above, in each step of each rollout the action is
-chosen uniformly at random.
+most straightforward way while guaranteeing approximate correctness of
+the result.  The tree node selection is made using the heuristics
+described above, in each step of each rollout the action is chosen
+uniformly at random.
 
-The main distinction is in the update phase. To maintain the lower and
+The primary distinction is in the update phase. To maintain the lower and
 upper bounds, backpropagation using the Bellman update is performed
 from the final state of the rollout to the state corresponding to
 the selected tree node, and then on the states corresponding to the
-nodes on the taken tree path. Compare this with the usual MCTS
+nodes on the taken tree path. Compare this with a typical MCTS
 implementation where this is not necessary and updates are performed
 only on the tree path.
 

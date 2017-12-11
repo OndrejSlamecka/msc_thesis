@@ -361,12 +361,13 @@ product set of the set of strategies for each of the modules).
 
 On the following pages we present the results of our measurements.
 In the presented tables rows correspond to models and their
-configuration, columns to methods and chosen exploration constant.  Each
+configuration, columns to methods and chosen tree heuristic constant (in
+parenthesis). Each
 table cell contains comma separated running time in seconds and number of visited
 states of the MDP\footnote{The number of states is, unlike running time,
 agnostic to implementation details.}\textsuperscript{,}\footnote{Value iteration has to construct the
-whole model in memory so the number of states it visits is the total
-number of states.}. Each experiment shown in the tables below was repeated
+whole model in memory but we show the number of states after VI
+preprocessing.}. Each experiment shown in the tables below was repeated
 at least five times and the results were averaged\footnote{There was no
 significant variance in the measured times so averaging provides
 representative results.}.
@@ -384,18 +385,18 @@ Results of many measurements, some of which were selected for the tables
 presented later, can be found in directory \linebreak \verb|benchmarks| together
 with a script for transforming them into a \LaTeX\ table.
 
-In \autoref{table:general_comparison} we can see
-TODO: Table 1, comparison of VI, BRTDP, BRTDP-UCB, MCTS-BRTDP on the
-PRISM suite (zeroconf, firewire-impl, wlan, coin, leader, mer).
-Note that MCTS-BRTDP is almost as fast as BRTDP.
+In \autoref{table:general_comparison} we can see that MCTS-BRTDP-MAXDIFF can
+keep up with BRTDP-MAXDIFF on the PRISM benchmark suite. Out of five
+runs of BRTDP-UCB only one finished (in 35 seconds) in the time limit
+(240 seconds). TODO: comment on the rest. BMCTS did not perform well on
+any of the benchmarks.
 
-TODO: Somewhere where BMCTS is good?
-
-TODO: Table 2, comparison of VI, BRTDP, MCTS-BRTDP on branch-zeroconf,
-about 6 lines, 3 where BRTDP < MCTS-BRTDP < VI, and 3 where it is the
-other way.
-Note that overall MCTS-BRTDP does
-not do the worst or the best anywhere, making it a universal choice.
+\autoref{table:branch_zconf} shows how the methods perform on
+branch-zeroconf. TODO: there should be one where mcts is better, one
+when vi is better and one where brtdp is better, let's wait for the
+results.
+Note that overall the benchmarks MCTS-BRTDP does
+not perform the worst or the best anywhere, making it a universal choice.
 
 Measurements show that the only method which works on at least some of the
 composition-zeroconf models is value iteration (specifically with $K = 40$ the
@@ -408,35 +409,34 @@ thousands of states and a few seconds of running time.
 The impact of tree heuristic constant is usually trivial and we did not
 observe any cases where it would be beneficial to fine-tune the
 constant. As it forces exploration, significant increases beyond a small
-useful value just increased the number of explored states. TODO: can
-this be seen in the first table?
+useful value just increased the number of explored states. This can be
+seen in table TODO.
 
 \begin{landscape}
 
 \begin{table}
 \begin{tabularx}{\textwidth}{ l  | c | c | c | c | c }
-                     & VI     &  BRTDP, MAX-DIFF   & BRTDP-UCB & MCTS-BRTDP \\
-zeroconf $N=15,  K=10$ &        204, &   \\
-zeroconf $N=20,  K=10$ &        204, &   \\
-zeroconf $N=20, K=20$  &   &   \\
-zeroconf $N=100, K=40$ &   &   \\
+                   & VI           &  BRTDP, MD       & MCTS-BRTDP-MD (0.5) & BRTDP-UCB (0.5)  \\
+z-conf $N=15,  K=10$ & 205, 184k    &  0.93, 762       & 0.114, 819          &  12, 415         \\
+z-conf $N=20,  K=10$ & 213, 184k    &  0.104, 769      & 0.110, 818          & 12.4, 436        \\
+z-conf $N=20, K=20$  & -            &  0.129, 1172     & 0.172, 1208         & 12.7, 605        \\
+z-conf $N=100, K=40$ & 16.2, 354k &  0.27, 2191        & 0.268, 2375         & -                \\
 wlan6                &        204, &   \\
 coin                 &        204, &   \\
 leader               &        204, &   \\
 \end{tabularx}
-\caption{Comparison on standard PRISM models}
+\caption{Comparison on standard PRISM models.}
 \label{table:general_comparison}
 \end{table}
 
 \begin{table}
-\begin{tabularx}{\textwidth}{ l  | c | c  }
-branch\_zeroconf &  BRTDP, MAX-DIFF   &   VI      \\
-$N=10,  K=10$ & \\
-$N=30,  K=10$ & \\
-$N=140, K=40$ &
-
+\begin{tabularx}{\textwidth}{ l  | c | c | c }
+branch\_zeroconf &  BRTDP, MD  & MCTS-BRTDP-MD (0.5) &   VI      \\
+$N=10,  K=10$      &   \\
+$N=30,  K=10$      & \\
+$N=140, K=40$      &
 \end{tabularx}
-\caption{caption}
+\caption{Comparison on a ``branch'' model.}
 \label{table:branch_zconf}
 \end{table}
 

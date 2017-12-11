@@ -292,7 +292,7 @@ taking actions.
 \subsection{Zero-sum games and minimax}
 
 In zero-sum games one player wins at the cost of the other losing.
-There are plenty of examples of such games, e.g. Chess, Go, which makes
+There are plenty of examples of such games, e.g., Chess, Go, which makes
 them an important subject of study.
 
 \begin{definition}
@@ -315,7 +315,7 @@ von Neumann.}.
 The {\em minimax algorithm} computes the value of each leaf in a game
 tree assuming the opponent tries to harm the player as much as
 possible. That is if player $1$ is computing which turn to play,
-she uses the fact that she can maximize her profit in her future turns,
+she uses the fact that she can maximize her profit in her future turns
 but assumes player $2$ will try to minimize it.
 After all options are computed in this alternating manner,
 player $1$ plays the action going into the subtree with the highest value node.
@@ -331,8 +331,9 @@ player 2 to minimize in his turns.
 Player 2 minimizes in his turns, expects
 player 1 to maximize in her turns.
 
-Second, instead of alternating between maximization and minimization an algorithm
-can always maximize if it alters the sign of the value in each step.
+Second, instead of alternating between maximization and minimization, an
+algorithm can always maximize if it alters the sign of the value in each
+step.
 
 These simplifications result in \autoref{negamax}, the {\em negamax
 algorithm}.
@@ -461,8 +462,8 @@ promising branches.
 For example when solving a tic-tac-toe game the algorithm starts with
 the current board state in the root of the tree and then proceeds to
 add the immediate turns into the tree. They are explored with random
-rollouts and the algorithm proceeds to the parts of tree which
-either seem to lead victory or which are unsufficiently explored, the
+rollouts and the algorithm proceeds to the parts of the tree which
+either seem to lead victory or which are insufficiently explored, the
 balance between exploitation and exploration is dependent on the choice of
 the constant in the tree heuristic. See \parencite{mcts_ttt} for an
 elaborate explanation with illustrations.
@@ -516,7 +517,7 @@ to lose, as a loss of a small part of territory may be reversed, however
 losing an important piece is hardly reversible.
 This gives us an important example of games where MCTS performs well (in
 Go it is worth exploring a plethora of moves) and where it does not
-(e.g. in Chess, due to the trap states described above).
+(e.g., in Chess, due to the trap states described above).
 It seems plausible this
 generalizes well to territory versus piece based games.
 
