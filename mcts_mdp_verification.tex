@@ -3,7 +3,7 @@
 In this chapter three new algorithms for verification of Markov decision
 processes are presented. One called Bounded MCTS (BMCTS) follows
 closely the general MCTS scheme but the updates maintain lower and upper
-bounds. The second, MCTS-BRTDP, is a fusion of MCTS, where each
+bounds. The second, MCTS-BRTDP, is a fusion of MCTS and BRTDP, where each
 rollout is a single iteration of BRTDP.  The third one is called
 BRTDP-UCB and uses the UCB formula to select the next action in BRTDP.
 
@@ -48,10 +48,15 @@ the result.
 
 Function \textsc{TreePolicy} is implemented as in
 \autoref{alg:uct} and uses one of the formulas
-described at the beginning of this chapter.
-In each step of each rollout the action is chosen
-uniformly at random and a state is then sampled according to the
-transition distribution (like the HIGH-PROB variant of BRTDP).
+described at the beginning of this chapter. It starts at the root, and
+then repeatedly chooses a child with the highest value given by a
+formula until it reaches a leaf $v_l$. If the corresponding state
+$v_l.state$ has successors, they are added in nodes as children of the
+node and one of them is returned. If not, then $v_l$ is returned.
+
+In each step of a rollout, an action is chosen
+uniformly at random, and a state is then sampled according to the
+transition distribution.
 
 The primary distinction is in the backpropagation phase. To maintain the lower
 and upper bounds, backpropagation using the Bellman update is performed
@@ -72,7 +77,7 @@ this is not necessary and updates are performed only on the tree path.
 
 This algorithm is an improvement upon random sampling as it guides the
 random rollouts towards the parts of the decision process which look
-more relevant for maximizing the sought probability. However, the random
+more relevant to maximizing the sought probability. However, the random
 rollouts prove to be ineffective in practice, which leads us to our main
 algorithm.
 
@@ -81,7 +86,7 @@ algorithm.
 \begin{algorithm}[H]
 \caption{BMCTS}
 \label{alg_bmcts}
-\begin{algorithmic}
+\begin{algorithmic}[1]
 \Function{BMCTS}{$s_0$}
     \State Let $v_0$ be the root of the MCTS tree, with $v_0.state = s_0$.
     \While{$U(s_0) - L(s_0) > \epsilon$}
@@ -136,14 +141,17 @@ for significantly faster updates of the bounds as compared to BMCTS but
 still utilizing exploration which makes it possible to overcome parts of
 the MDP which are hard for BRTDP.
 
-The functions \textsc{TreePolicy} and \textsc{TreeBackup} are implemented in
-the same way as in \autoref{alg_bmcts}. Note that we avoid using
-\textsc{Backup} as that is done by BRTDP.
+The functions \textsc{TreePolicy} and \textsc{TreeBackup} are
+implemented in the same way as in \autoref{alg_bmcts}. Recall that the
+tree is traversed greedily by choosing uniformly one of the nodes with
+maximal heuristic value. Tree backpropagation updates bounds on the
+states corresponding to the nodes on the traversed path. Note that we
+avoid using \textsc{Backup} as that is done by BRTDP.
 
-The implementation of BRTDP used here maintains a map from states to
-lists of nodes in the tree is maintained and each time a MEC is
-collapsed, the subtrees in the MCTS tree corresponding to the nodes
-representing a state in the MEC are removed.
+Moreover, the implementation of BRTDP used here maintains a map from
+states to lists of nodes in the tree. Every time a MEC
+is collapsed in BRTDP, we remove the subtrees in the MCTS tree where the root node
+corresponds to a state of the collapsed MEC.
 
 This ensures that the algorithm maintains a consistent representation of
 the MDP throughout the computation. Since MCTS does not restrict BRTDP
@@ -153,7 +161,7 @@ surely converges to the correct value.
 \begin{algorithm}
 \caption{MCTS-BRTDP}
 \label{mcts-brtdp}
-\begin{algorithmic}
+\begin{algorithmic}[1]
 \Function{MCTS-BRTDP}{$s_0$}
     \State Let $v_0$ be the root of the MCTS tree, with $v_0.state = s_0$.
     \While{$U(s_0) - L(s_0) > \epsilon$}
@@ -167,12 +175,32 @@ surely converges to the correct value.
 \end{algorithmic}
 \end{algorithm}
 
+\pagebreak
+
 \section{UCB in BRTDP}
 
 We further present one algorithm which is not based on MCTS but
-incorporates the $UCB$ exploration term into BRTDP. Instead of choosing
-an action with the greatest upper bound, it chooses the action with the
+incorporates the UCB exploration formula into BRTDP. Instead of choosing
+an action with the greatest upper bound, it chooses an action with the
 greatest UCB value.
+
+Line 7 of \autoref{alg:brtdp} is thus replaced with the line below,
+where $s$ is the current state of the simulation ($last(\omega)$
+in BRTDP). The range of the argmax are all states $i$ which can be
+reached from $s$ through an allowed action $a$ with non-zero
+probability. Here $n_i$ is the number of visits of state $i$,
+and $n$ denotes the number BRTDP iterations run so far.
+
+\bigskip
+\begin{algorithmic}
+    \State $a \gets$ sample uni. from
+    $\argmax\limits_{a \in E(s), \forall i \text{ s.t. } \Delta(s,a)(i) > 0}
+        U(i) + C \sqrt{ \frac{2 \ln n}{n_i} }$
+\end{algorithmic}
+\bigskip
+
 
 This algorithm eventually explores as much as the previously mentioned
 variants of BRTDP if necessary.
+
+

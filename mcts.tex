@@ -66,7 +66,7 @@ with the result. The algorithm can be splt into four stages:
 \begin{algorithm}
 \caption{General Monte Carlo Tree Search method}
 \label{mcts}
-\begin{algorithmic}
+\begin{algorithmic}[1]
 \Function{MCTS}{$s_0$}
     \State Let $v_0$ be the root of the MCTS tree, with $v_0.state = s_0$.
     \While{within computational budget}
@@ -133,7 +133,7 @@ estimate of the actually attainable reward.
 \begin{algorithm}
     \caption{Upper Confidence Bound for Trees}
 \label{alg:uct}
-\begin{algorithmic}
+\begin{algorithmic}[1]
 \Function{UCT}{$s_0$}
     \State Let $v_0$ be the root of the MCTS tree, with $v_0.state = s_0$.
     \While{within computational budget}
@@ -205,8 +205,8 @@ proceed by presenting the standard {\em minimax} algorithm, then showing
 how MCTS can be used to solve games and how it compares with minimax.
 Lastly, we briefly compare the application of MCTS to Go and Chess.
 Observing where it performs well and where it does not provides insight
-the algorithm and it is a useful starting point for understanding the results
-of evaluation in \autoref{ch_evaluation}.
+into MCTS, and moreover, it is a useful starting point for understanding
+the results of evaluation in \autoref{ch_evaluation}.
 
 We present the following definition for a precise understanding of games.
 A reader can notice similarities with MDPs, for
@@ -384,7 +384,7 @@ $-1$.
 \begin{algorithm}
 \caption{Negamax}
 \label{negamax}
-\begin{algorithmic}
+\begin{algorithmic}[1]
 \Input Two-player zero-sum game\footnote{The $player$
 numbers are shifted down by one for easy manipulation.}
 $(N, S, s_0, F, A, E, \Delta, \rho, u)$, where players
@@ -468,12 +468,12 @@ action a player should take in a zero-sum game.
 \begin{algorithm}
 \caption{Negamax MCTS Backup}
 \label{alg:mcts_negamax}
-\begin{algorithmic}
-\Function{backup}{$v, \Delta$}
+\begin{algorithmic}[1]
+\Function{backup}{$v, r$}
     \While{$v$ is not $null$}
         \State $N(v) \gets N(v) + 1$
-        \State $Q(v) \gets Q(v) + \Delta$
-        \State $\Delta \gets - \Delta$
+        \State $Q(v) \gets Q(v) + r$
+        \State $r \gets - r$
         \State $v \gets $ parent of $v$
     \EndWhile
 \EndFunction
@@ -497,8 +497,8 @@ heuristic. See \parencite{mcts_ttt} for an elaborate explanation with
 illustrations.
 
 An important theoretical result is
-that MCTS converges to minimax \parencite{Kocsis},
-so eventually, after a lot of MCTS iterations, there is a negligible
+that UCT converges to minimax \parencite{Kocsis},
+so eventually, after a lot of UCT iterations, there is a negligible
 difference between the results of the two methods and they pick the same
 next move. However in
 applications we want to know when to use minimax (\autoref{negamax}) and
@@ -515,7 +515,7 @@ so it seems that the observations made here (in tree traversal MCTS has
 only a very limited information about the possible outcomes of each
 choice) still translate to the domain of MDP
 verification (as the models are usually not used again, it is not
-effective to train a network for them). On the other hand this surely
+effective to train a network for them). On the other hand, this surely
 deserves a deeper investigation.}. The reason being that chess
 games contain a lot of trap states (states from which the opponent
 has a guaranteed victory) which are reachable just in a few turns. UCT

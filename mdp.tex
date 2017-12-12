@@ -403,7 +403,7 @@ slow (the threshold is given by some $\epsilon$).
 \begin{algorithm}
 \caption{Value Iteration}
 \label{vi}
-\begin{algorithmic}
+\begin{algorithmic}[1]
     \State $\forall s \in S,\; s \gets 1$ if $x \in F$ else $0$
     \Do
         \ForEach{$s \in S \setminus (F \cup Z)$}
@@ -486,7 +486,7 @@ given $\epsilon$) far from each other.
 \begin{algorithm}
 \caption{BRTDP for MDPs without end components}
 \label{alg:brtdp}
-\begin{algorithmic}
+\begin{algorithmic}[1]
 \State $U(s,a) \gets 1, L(s,a) \gets 1 \; \forall s \in S, a \in E(s)$
 \State $U(0,a) \gets 0, L(1,a) \gets 1 \; \forall a \in A$
 \State $\omega \gets s_0$

@@ -157,9 +157,8 @@ We describe how the pseudocode described in \autoref{ch_mcts} maps to
 the implementation in PRISM. The implementation can be found in
 \verb|prism/prism/src/heuristics| attached to the thesis.
 
-To represent the MCTS tree we use classes \verb|MCTree.java| and
-\linebreak
-\verb|MCNode.java|. The tree class has method \verb|unfold|
+To represent the MCTS tree we use classes \verb|MCTree| and
+\verb|MCNode|. The tree class has method \verb|unfold|
 which asks the model generator to add the next states of a given state
 to the explicit model, and adds them to the tree.
 
@@ -415,11 +414,13 @@ on firewire?)
 \begin{table}
 \begin{tabularx}{\textwidth}{ l  | c | c | c | c }
                    & VI           &  BRTDP, MD       & MCTS-BRTDP-MD (0.5) & BRTDP-UCB (0.5)  \\
-z-conf $N=15,  K=10$ & 205, 184k    &  0.93, 762       & 0.114, 819          &  12, 415         \\
-z-conf $N=20,  K=10$ & 213, 184k    &  0.104, 769      & 0.110, 818          & 12.4, 436        \\
-z-conf $N=20, K=20$  & -            &  0.129, 1172     & 0.172, 1208         & 12.7, 605        \\
-z-conf $N=100, K=40$ & 16.2, 354k   &  0.27, 2191      & 0.268, 2375         & -                \\
-firewire           &              &                  &                     & \\
+z-conf $N=15,  K=10$ & 205, 184k    &  0.98, 762       & 0.114, 801          &  12, 399         \\
+z-conf $N=20,  K=10$ & 213, 184k    &  0.099, 761      & 0.111, 833          & 12.4, 436        \\
+z-conf $N=20, K=20$  & -            &  0.127, 1162     & 0.156, 1241         & 13.8, 647        \\
+z-conf $N=100, K=40$ & 16.2, 354k   &  0.256, 2192     & 0.283, 2372         & -                \\
+firewire\_dl 360,2000 & 20.6, 0             &    & 0.011, 32        & 0.357, 12291 \\
+
+firewire\_dl 360,5000 & -         &    & 0.011, 32        & 0.357, 12291 \\
 wlan6              & -            &                  &                     & \\
 coin               &              & -                &                     & \\
 leader             &              &                  &                     &
