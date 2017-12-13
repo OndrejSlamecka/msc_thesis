@@ -8,24 +8,23 @@ methods on standard models.
 
 \section{PRISM, Probabilistic Model Checker}
 
-PRISM \parencite{prism}
-({\em probabilistic model checker}) is a program/framework
+PRISM \parencite{prism} is a program/framework
 for formal modelling and analysis of probabilistic systems.
 We show how to use PRISM to describe MDPs, their properties,
-%and how to check them.
+and how to check them.
 
 \subsection*{Describing MDPs with the PRISM language}
 PRISM has a language for description of Markov decision processes
 based on the formalism of Alur and Henzinger \parencite{ReactiveModules}.
 A brief example is given below for the readers who wish to try our
 algorithms on small models which they can describe and solve by hand.
-The the definitive guide to the language is available online on the
+The definitive guide to the language is available online on the
 PRISM homepage \parencite{prism_lang}.
 
-The PRISM language describes {\em modules} (interacting actors),
-their states (using variables) and transitions between the states.
+The PRISM language describes {\em modules} (interacting controllers),
+their states (using variables), and transitions between the states.
 An example single PRISM language line is below. The line translates as:
-if condition \verb|guard| is satisfied the actor can choose action \verb|act|
+if condition \verb|guard| is satisfied the controller can choose action \verb|act|
 and
 with probability \verb|prob_1| update \verb|update_1| will happen,
 with probability \verb|prob_2| update \verb|update_2| will happen,
@@ -63,7 +62,7 @@ and so on.
 \label{moduleM}
 \end{figure}
 
-An example module is described below and is equivalent to the MDP
+An example module is described below. It is equivalent to the MDP
 depicted in \autoref{moduleM}.
 
 \smallskip
@@ -100,7 +99,7 @@ Once built the PRISM binary is available at \verb|prism/prism/bin/prism|.
 
 Now use PRISM to analyze the model -- its name is passed as the first
 argument and \verb|-pf| specifies the property we want to check.
-The \verb|-ex| flag will be described later.
+\linebreak Flag \verb|-ex| will be described later.
 Running the command below
 confirms our expectations: the maximum probability of eventually
 reaching state \verb|s=2| is 1. If not specified otherwise, the
@@ -122,10 +121,6 @@ BRTDP is chosen to be the one with highest upper bound.
 \end{verbatim}
 \medskip
 
-The UCB constant can be chosen with
-\verb|-ucb1constant|. If not provided the value is set to
-$1/\sqrt{2}$.
-
 The heuristic method can be chosen out of the following:\linebreak
 \verb|MCTS_BRTDP|, \verb|BRTDP|, \verb|BRTDP_UCB|. BMCTS is chosen by
 using method \verb|MCTS_BRTDP| together with \verb|-next_action 5|.
@@ -133,6 +128,8 @@ The next state heuristics we use are
 \verb|HIGH_PROB|, \verb|MAX_DIFF|.
 The variation of BRTDP using UCB to select the next action is chosen by
 adding \verb|-next_action 2|.
+The tree heuristic constant can be chosen with
+\verb|-ucb1constant|.
 
 \subsection*{Data structures}
 The \verb|-ex| switch used in the value iteration example above tells
@@ -159,8 +156,8 @@ the implementation in PRISM. The implementation can be found in
 
 To represent the MCTS tree we use classes \verb|MCTree| and
 \verb|MCNode|. The tree class has method \verb|unfold|
-which asks the model generator to add the next states of a given state
-to the explicit model, and adds them to the tree.
+which adds the next states of a given state
+to the explicit model, and then puts them to the tree in nodes.
 
 The next state heuristics are implemented in a straightforward way
 inside directory \verb|nextstate|. The tree heuristics described earlier
@@ -219,7 +216,7 @@ selects a branch it knows the least about until it learns the upper bound
 for the right part of the tree is 0 and therefore it has to focus on the
 left part. The VCB for MCTS-BRTDP focuses on the left part quickly due
 to successful results, however it still explores the right part a bit to
-look for possibly missed target states and to decrease the upper bound.
+look for possibly missed target states.%, and to decrease the upper bound.
 
 \subsection*{BRTDP Adversary}
 
@@ -248,8 +245,7 @@ correct value soon. On the other hand MCTS-BRTDP with the VCB formula
 finds the target in the left part and then focuses too much on this part
 even though what it needs is to learn that the right part has upper
 bound 0 -- this variant is thus taking very long to find the correct
-probability unless it is configured with a high multiplier in the
-exploration term of the VCB formula.
+probability unless configured with a high tree heuristic constant.
 
 Observing the VCB variant of MCTS-BRTDP on this and the binary tree
 models suggests that it is quick to find good lower bounds. However,
@@ -343,6 +339,8 @@ resulting shape is shown in \autoref{fig:branching}.
     \label{fig:branching}
 \end{figure}
 
+\newpage
+
 The second way to combine MDPs is parallel composition, which is done by
 using modules in the PRISM language. Each state of the composed MDP is a member
 of the product set of the sets of states of each of the modules. The
@@ -353,101 +351,122 @@ product set of the set of strategies for each of the modules).
 
 \section{Experimental Comparison}
 
-On the following pages we present the results of our measurements.
+On the following pages we present the most important results of our measurements.
 In the presented tables rows correspond to models and their
-configuration, columns to methods and chosen tree heuristic constant (in
-parenthesis). Each table cell contains comma separated running time in
+configuration, columns to methods.
+Each table cell contains comma separated running time in
 seconds and number of visited states of the MDP\footnote{The number of
 states is, unlike running time, agnostic to implementation details.}\textsuperscript{,}\footnote{Value iteration has to construct the
 whole model in memory but we show the number of states after VI
 preprocessing.}. Hyphen denotes timeout or insufficient memory.
+$k$ is used as a shorthand for thousands.
 
 Each experiment shown in the tables below was repeated five
 times and the results were averaged. There was no significant
-variance in the measured times, so the number of repetitions is
+variance (beyond 10 \%) in the measured times, so the number of repetitions is
 sufficient and averaging provides representative results. We set
-$\epsilon$ to $10^{-6}$.
+$\epsilon$ to $10^{-6}$, except for the ``branch'' models where we used
+$10^{-2}$.
 
 We used a machine equipped with
-40 cores of \verb|Intel(R) Xeon(R)| \verb|CPU E5-2630 v4 @ 2.20GHz| processors,
+8 core \verb|Intel(R) Core(TM)| \verb|i7-3770 CPU @ 3.40GHz| processor,
 OpenJDK Runtime Environment 1.8 and JVM configured to use 4 GB of memory
 and 512 MB stack size.
 
-Our benchmark script which allows to describe each measurement
-in an easy, declarative way is described in the appendix. See
-\verb|prism/prism/tests/reachability/scripts/run_benchmark.py| for
-\linebreak an example.
-Results of many measurements, some of which were selected for the tables
-presented later, can be found in directory \linebreak \verb|benchmarks| together
-with a script for transforming them into a \LaTeX\ table.
+Our benchmark script allows easy, declarative description of each measurement.
+Its details are described in the appendix.
+See \linebreak
+\verb|prism/prism/tests/reachability/scripts/run_benchmark.py| for \linebreak
+an example usage.
+%Results of many measurements, some of which were selected for the tables
+%presented later, can be found in directory \linebreak \verb|benchmarks| together
+%with a script for transforming them into a \LaTeX\ table.
 
-In \autoref{table:general_comparison} we can see that MCTS-BRTDP-MAXDIFF can
-keep up with BRTDP-MAXDIFF on the PRISM benchmark suite. Out of five
-runs of BRTDP-UCB only one finished (in 35 seconds) in the time limit
-(240 seconds). TODO: comment on the rest. BMCTS did not perform well on
-any of the benchmarks.
+In the tables the numbers next to the model name are for zeroconf N, K; for
+firewire\_dl delay, deadline; for consensus (coin) protocol N,K. We use M-B as a
+shortcut for MCTS-BRTDP-MAXDIFF.  We used 1.4 for the tree heuristic constant
+unless otherwise noted.
 
-\autoref{table:branch_zconf} shows how the methods perform on
-branch-zeroconf. TODO: there should be one where mcts is better, one
-when vi is better and one where brtdp is better, let's wait for the
-results.
-Note that overall the benchmarks MCTS-BRTDP does
-not perform the worst or the best anywhere, making it a universal choice.
+In \autoref{table:general_comparison} we can see that MCTS-BRTDP-MAXDIFF
+keeps up with BRTDP-MAXDIFF on the PRISM benchmark suite.
+VI and BRTDP-UCB time out on several models. MCTS-BRTDP-VCB-MAXDIFF (not
+included in the table) performs similarly to MCTS-BRTDP-MAXDIFF, but better
+on coin and leader models, where it outperforms BRTDP.
+
+\autoref{table:branch_zconf} demonstrates that MCTS based methods have a
+significant advantage on the ``branch'' models. We can see that BRTDP finds the
+way to target in zeroconf and has to use that to compute the bounds, while MCTS
+methods explore the other branch and use it to update faster. However, they pay
+the cost of exploring a lot more states. MCTS-BRTDP-VCB-MAXDIFF performs worse
+than its UCB variant as opposed to the previous table.
 
 Measurements show that the only method which works on at least some of the
 composition-zeroconf models is value iteration (specifically with $K = 40$ the
 model has 141 thousand states and VI solves it, regardless of choice of $N$).
 Other methods always run out of time.
-But on composition-wlan6 we observed that MCTS-BRTDP is the only method which
-can actually solve the problem. Moreover, it has to explore only few
-thousands of states and a few seconds of running time.
+But on composition-wlan6 we observed that only MCTS based methods
+can actually solve the problem. MCTS-BRTDP-VCB-MAXDIFF needs just 2 seconds and
+over twelve hundred states to explore.
 
-The impact of tree heuristic constant is usually trivial and we did not
-observe any cases where it would be beneficial to fine-tune the
-constant. As it forces exploration, significant increases beyond a small
-useful value just increased the number of explored states. This can be
-seen in table TODO. (mcts-brtdp-md with ucb in 0.1,0.4,0.7,1,2,4,8,12,16
-on firewire?)
+The impact of the tree heuristic constant is usually straightforward. Setting it
+too low might get the algorithm stuck in bad choices for long, but once a small
+value enables some exploration a significant increase only makes the algorithm
+explore more than is necessary. For example, for the branch-zeroconf model, the
+algorithm finishes faster with constant set to 1.4 rather than 10.
+
+In \autoref{table:ucb_leader} we can see that with a careful choice of the UCB constant
+MCTS-BRTDP-MD can, in fact, outperform BRTDP-MAXDIFF even though the first choice
+of the UCB constant in \autoref{table:general_comparison} suggested otherwise.
+
+In summary, MCTS based methods work well on several models (when the exploration
+constant is set properly), but there are models where VI and BRTDP are better.
+However, MCTS-BRTDP-MAXDIFF seems to work without timeouts (albeit possibly
+slowly) on many models, making it a kind of universal choice.
 
 \begin{landscape}
 
 \begin{table}
-\begin{tabularx}{\textwidth}{ l  | c | c | c | c }
-                   & VI           &  BRTDP, MD       & MCTS-BRTDP-MD (0.5) & BRTDP-UCB (0.5)  \\
-z-conf $N=15,  K=10$ & 205, 184k    &  0.98, 762       & 0.114, 801          &  12, 399         \\
-z-conf $N=20,  K=10$ & 213, 184k    &  0.099, 761      & 0.111, 833          & 12.4, 436        \\
-z-conf $N=20, K=20$  & -            &  0.127, 1162     & 0.156, 1241         & 13.8, 647        \\
-z-conf $N=100, K=40$ & 16.2, 354k   &  0.256, 2192     & 0.283, 2372         & -                \\
-firewire\_dl 360,2000 & 20.6, 0             &    & 0.011, 32        & 0.357, 12291 \\
+\begin{tabularx}{\textwidth}{ l | C | C | C | C | C}
+    \hline
+                          & VI           &  BRTDP, MD     & M-B            & BMCTS       & BRTDP-UCB       \\
+    \hline
+    z-conf 15, 10         & 205, 184k    &  0.1, 762      & 0.114, 801     & 1, 1045     &  12, 399        \\
+    z-conf 20, 10         & 213, 184k    &  0.103, 791    & 0.111, 823     & 1.35, 1070  &  10.7, 417      \\
+    z-conf 20, 20         & -            &  0.167, 1181   & 0.151, 1226    & 0.71, 1459  &  13.2, 659      \\
+    z-conf 100, 40        & 16.2, 354k   &  0.323, 2225   & 0.265, 2255    & 2.02, 2501  &  -              \\
 
-firewire\_dl 360,5000 & -         &    & 0.011, 32        & 0.357, 12291 \\
-wlan6              & -            &                  &                     & \\
-coin               &              & -                &                     & \\
-leader             &              &                  &                     &
+    firewire\_dl 360,5000 & -            & 0.02, 44       & 0.02, 38       & 0.01, 25    & 1.1, 25k        \\
+    wlan 6                & -            & 0.07, 412      & 0.07, 715      & 0.07, 572   & 0.1, 1762       \\
+    coin 4,3              & 0.6, 33k     & 34, 9k         & 33, 10k*       & 48, 10k*    & 36, 9k          \\
+    leader                & 6, 0         & 15, 140k       & 37, 137k       & 20, 160k*   & 17, 170k
 \end{tabularx}
-\caption{Comparison on standard PRISM models.}
+\caption{Comparison on standard PRISM models. * UCB constant 8 used to avoid timeout.}
 \label{table:general_comparison}
 \end{table}
 
 \begin{table}
-\begin{tabularx}{\textwidth}{ l  | c | c | c }
-branch-zeroconf &    VI       & MCTS-BRTDP-MD (0.5) & BRTDP, MD  \\
-$N=10,  K=10$     & 205, 1847k  &                     &            \\
-$N=30,  K=10$     & 206, 1847k  &                     &            \\
-$N=140, K=40$     & 16.5, 353k  &                     &
+\begin{tabularx}{\textwidth}{ l | C | C | C | C }
+\toprule
+branch-zeroconf &    VI     & BRTDP, MD      & M-B            & BMCTS       \\
+\midrule % BRTDP_UCB did not solve 140-40
+$N=20, K=20$    & 205, 1847k  & 23, 141        & 11.2, 3034     & 11.5, 2161  \\
+$N=30,  K=10$   & 206, 1847k  & 20, 81         & 12, 4017       & 12, 2910    \\
+$N=140,  K=40$  & 10, 354k  & 31.6, 261        & 12.7, 4017     & 11.9, 2910
 \end{tabularx}
 \caption{Comparison on a ``branch'' model.}
 \label{table:branch_zconf}
 \end{table}
 
-%\begin{table}
-%\begin{tabularx}{\textwidth}{ l  | c | c
-       %&  BRTDP, MAX-DIFF   &       VI     &  MCTS-BRTDP   & BRTDP-UCB \\
-%wlan6  &             46,  &       204, &               & \\
-%\end{tabularx}
-%\caption{Composition models}
-%\label{tab:composition}
-%\end{table}
+\begin{table}
+    \begin{tabularx}{\textwidth}{ l | C | C | C  | C  | C  | C  | C  | C  }
+    \toprule
+        MCTS-BRTDP-MD, C: & 1 & 2 & 4 & 6 & 8 & 10 & 12 \\
+    \midrule
+    leader                & 33, 137k & 27, 150k & 12, 138k & 13, 137k & 14, 136k & 15, 140k & 14, 139k \\
+\end{tabularx}
+\caption{Influence of the exploration constant.}
+\label{table:ucb_leader}
+\end{table}
 \end{landscape}
 
 %\section{Model Structure and MCTS Performance}

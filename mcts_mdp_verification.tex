@@ -1,11 +1,11 @@
 \chapter{MCTS in MDP Verification}
 
 In this chapter three new algorithms for verification of Markov decision
-processes are presented. One called Bounded MCTS (BMCTS) follows
+processes are presented. One called follows
 closely the general MCTS scheme but the updates maintain lower and upper
-bounds. The second, MCTS-BRTDP, is a fusion of MCTS and BRTDP, where each
-rollout is a single iteration of BRTDP.  The third one is called
-BRTDP-UCB and uses the UCB formula to select the next action in BRTDP.
+bounds. The second, is a fusion of MCTS and BRTDP, where each
+rollout is a single iteration of BRTDP.  The third one
+uses the UCB formula to select the next action in BRTDP.
 
 Before proceeding, recall from \autoref{sec:brtdp} that $L,U : S \times
 A \to [0,1]$, where $S, A$ are the sets of states and actions of an MDP,
@@ -17,10 +17,14 @@ $L(s) = \max_{a \in E(s)} L(s, a)$.
 
 The algorithms we suggest can be altered by changing the tree node
 selection heuristic. We suggest and evaluate three formulas: UCB, VCB,
-CCB.  Here $n_i$ is the number of visits of the node and $n$ is the
-number of iterations (visits of the root node).
+CCB.  Here $n_i$ is the number of visits of the node, $n$ is the
+number of iterations (visits of the root node), $s_i$ is the number of
+visits of the state corresponding to node $i$, and $s_r$ is the number
+of visits to the initial state. $s_i/s_r$ thus represents a
+guess\footnote{A biased guess as we update $s_j$ in tree traversal too.}
+of the probability of reaching the state corresponding to node $i$.
 \begin{equation*}
-    UCB(i) = U(i) + C \sqrt{ \frac{2 \ln n}{n_i} }
+    UCB(i) = \frac{s_i}{s_r} \cdot U(i) + C \sqrt{ \frac{2 \ln n}{n_i} }
 \end{equation*}
 
 In the VCB (Victory Confidence Bound), $v_i$ is the number of times a
@@ -42,9 +46,9 @@ its performance is very bad.
 
 \section{Bounded MCTS}
 
-BMCTS is an algorithm which implements the general MCTS scheme in the
-most straightforward way while guaranteeing approximate correctness of
-the result.
+BMCTS, \autoref{alg:bmcts}, is an algorithm which implements the general
+MCTS scheme in the most straightforward way while guaranteeing
+approximate correctness of the result.
 
 Function \textsc{TreePolicy} is implemented as in
 \autoref{alg:uct} and uses one of the formulas
@@ -85,7 +89,7 @@ algorithm.
 
 \begin{algorithm}[H]
 \caption{BMCTS}
-\label{alg_bmcts}
+\label{alg:bmcts}
 \begin{algorithmic}[1]
 \Function{BMCTS}{$s_0$}
     \State Let $v_0$ be the root of the MCTS tree, with $v_0.state = s_0$.
@@ -142,7 +146,7 @@ still utilizing exploration which makes it possible to overcome parts of
 the MDP which are hard for BRTDP.
 
 The functions \textsc{TreePolicy} and \textsc{TreeBackup} are
-implemented in the same way as in \autoref{alg_bmcts}. Recall that the
+implemented in the same way as in \autoref{alg:bmcts}. Recall that the
 tree is traversed greedily by choosing uniformly one of the nodes with
 maximal heuristic value. Tree backpropagation updates bounds on the
 states corresponding to the nodes on the traversed path. Note that we

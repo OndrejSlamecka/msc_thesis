@@ -46,18 +46,17 @@ of Markov Decision Processes},
     TeXtitle      = {Monte Carlo Tree Search \\ in Verification
 of Markov Decision Processes},
     keywords      = {Monte Carlo Tree Search, Markov Decision Process,
-    Verification, Reachability, Learning Algorithm, Heuristic},
+    Verification, Reachability, Learning Algorithm},
     TeXkeywords   = {Monte Carlo Tree Search, Markov Decision Process,
-    Verification, Reachability, Learning Algorithm, Heuristic},
-    abstract      = {We explore how Monte Carlo tree search type algorithms can be
-        used for verification of Markov decision processes (with
-        complete information) by balancing between exhaustive search
-        and heuristic search.
-        Several new algorithms either based on UCT (most successful MCTS
-        algorithm) or its variations are proposed and
-        experimentally evaluated on standard models. Our results show
-        one of the algorithms performs almost as well as BRTDP on most
-        standard models, but it is faster on models where BRTDP
+    Verification, Reachability, Learning Algorithm},
+    abstract      = {We explore how Monte Carlo tree search type algorithms can
+        be used for verification of Markov decision processes (with complete
+        information) due to their balance between exhaustive and heuristic search.
+        Several new algorithms either based on UCT (the most successful MCTS
+        algorithm) are proposed and experimentally evaluated
+        on standard models. Our results show there are standard models where
+        they outperform previously known methods.  Moreover, we show the
+        suggested algorithms perform very well on models where BRTDP
         underestimates certain paths to goals.
         },
     thanks = {I would like to thank my advisor Tomáš Brázdil for his
@@ -96,6 +95,9 @@ of Markov Decision Processes},
   commentstyle    = \itshape\color{magenta}}
 \usepackage{floatrow} %% Putting captions above tables
 \floatsetup[table]{capposition=top}
+
+
+\newcolumntype{C}{>{\centering\arraybackslash}X}
 
 %% Algortihms
 \usepackage{algorithm} % this does the figure environment
@@ -150,6 +152,8 @@ of Markov Decision Processes},
 \include{evaluation}
 \include{conclusion}
 
+% https://tex.stackexchange.com/questions/171999/overfull-hbox-in-biblatex
+\emergencystretch=3em
 \printbibliography[heading=bibintoc] %% Print the bibliography.
 
 \appendix %% Start the appendices.

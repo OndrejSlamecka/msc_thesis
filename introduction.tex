@@ -5,7 +5,7 @@
 %uncertain consequences to maximize its scientific output but also to maintain
 %operational state.
 
-Zero-configuration networking is a protocol for automatically setting up
+Zero-configuration networking protocol is used to automatically set up
 computer networks without the need for external help. The computers
 select their IP addresses in the created network randomly with the goal
 to achieve a working configuration.
@@ -44,19 +44,21 @@ or avoid them for the negative case.
 
 Classical algorithms for verification (proving properties) of MDPs
 based on dynamic programming can be used for finding the
-maximum probability of failure (maximum over all possible decisions in
+maximum probability of success or failure (maximum over all possible decisions in
 each step -- strategies). Under some circumstances, these algorithms are
 very good but recently it has been shown that learning based methods
 like BRTDP can outperform them on many MDPs \parencite{atva14}.
 
 Monte Carlo Tree Search is a heuristic search algorithm which has been
-successfully used to find high reward strategies in Markov decision
+successfully used to find strategies with high rewards in Markov decision
 processes. Recently the algorithm had a big success in the field of
 computer Go.
 
+\pagebreak
+
 In this thesis, we explore how Monte Carlo Tree Search can be used to
-find strategies maximizing given properties. Three algorithms are
-suggested: one a variation of Upper Confidence Tree algorithm (a variant
+find strategies maximising given properties. Three algorithms are
+suggested: one a variation of Upper Confidence Tree (UCT) algorithm (a variant
 of MCTS), one a fusion of UCT and BRTDP and the last one a BRTDP variant
 using a part of the UCT algorithm idea.  Measurements show that these
 algorithms have an advantage on several models.
@@ -65,7 +67,7 @@ The thesis is structured as follows. After this introduction, the second
 chapter is devoted to Markov Decision Processes and prior work on their
 verification.
 The third chapter describes Monte Carlo Tree Search and its application
-to maximizing rewards in MDPs and games. In the fourth chapter our new
+to maximising rewards in MDPs and games. In the fourth chapter our new
 algorithms are described. In the fifth chapter,
 the algorithms are evaluated on models available with the PRISM project
 as well as models newly created specifically for better comparison.

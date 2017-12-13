@@ -57,7 +57,7 @@ with the result. The algorithm can be splt into four stages:
     \item {\em Expansion} -- if the leaf's corresponding state is not
         terminal, then nodes for its succcessors are added to the tree.
     \item {\em Simulation} -- traverse the MDP from state of one of the new
-        nodes in a random or greedy manner until a terminal state is reached.
+        nodes in a random manner until a terminal state is reached.
     \item {\em Backpropagation} -- update the path from the selected
         node to the root with the result of the simulation.
 \end{enumerate}
@@ -106,7 +106,7 @@ number of visits to node $i$. $C$ is an arbitrary constant.
 
 \begin{equation}
 \label{UCB}
-UCT_i = \overline{X}_i + C \sqrt{ \frac{2 \ln n}{n_i} }
+UCT_i = \overline{X}_i + 2 C \sqrt{ \frac{2 \ln n}{n_i} }
 \end{equation}
 
 The tree is traversed greedily, in every step a node with maximal UCT
@@ -115,7 +115,8 @@ equal to $\infty$.  Importantly, when a node $j$ is visited, its
 sibling's $i$ UCT value is increased as $n$ increased but $n_i$ did not
 -- this contributes to balance between exploitation of known good
 strategies and exploration of new.  Constant $C$ instructs the algorithm
-how much weight to give to exploration. See \parencite{improved_mc} for
+how much weight to give to exploration, we often call it the
+{\em tree heuristic constant}. See \parencite{improved_mc} for
 insights into choice of $C$ in some specific situations.
 
 \autoref{alg:uct} is an implementation of the general scheme of \autoref{mcts}.
@@ -186,10 +187,11 @@ estimate of the actually attainable reward.
 \end{algorithmic}
 \end{algorithm}
 
-The tree is the algorithm's estimate of the actual reward attainable
+Thus the whole tree is the algorithm's estimate of the actual reward attainable
 from various parts of the MDP. In each tree node
 it greedily chooses to confirm it can get a good reward or goes to explore
-a little explored part of the MDP, the choice depends on the tree heuristic value.
+a little known part of the MDP -- the choice depends on the tree heuristic
+constant $C$.
 A random rollout is performed, and the algorithm then adds a new node to
 the tree which allows for a more precise estimate in the chosen part of
 the tree.
@@ -203,10 +205,11 @@ In this section a brief introduction to game theory is given, starting
 with definitions of games, strategies, and solutions to games. We
 proceed by presenting the standard {\em minimax} algorithm, then showing
 how MCTS can be used to solve games and how it compares with minimax.
-Lastly, we briefly compare the application of MCTS to Go and Chess.
-Observing where it performs well and where it does not provides insight
-into MCTS, and moreover, it is a useful starting point for understanding
-the results of evaluation in \autoref{ch_evaluation}.
+Observing how MCTS is used on another domain might provide useful insight.
+%Lastly, we briefly compare the application of MCTS to Go and Chess.
+%Observing where it performs well and where it does not provides insight
+%into MCTS, and moreover, it is a useful starting point for understanding
+%the results of evaluation in \autoref{ch_evaluation}.
 
 We present the following definition for a precise understanding of games.
 A reader can notice similarities with MDPs, for
@@ -503,8 +506,9 @@ difference between the results of the two methods and they pick the same
 next move. However in
 applications we want to know when to use minimax (\autoref{negamax}) and
 when to use UCT (\autoref{alg:uct} with \autoref{alg:mcts_negamax}) without
-iterating UCT for a long time.
+iterating for a long time.
 
+A lot of researches have studied this question.
 While UCT achieved success in many games \parencite{mcts_survey},
 for example in chess it does not perform well\footnote{
     Days prior to submitting this thesis a preprint article
@@ -522,37 +526,37 @@ has a guaranteed victory) which are reachable just in a few turns. UCT
 then spends a lot of time exploring these unimportant parts of the search
 tree \parencite{mcts_vs_chess}.
 
-\subsection{Computer Go}
+%\subsection{Computer Go}
 
-Go is an example of a game where MCTS has proven to be a good choice,
-most recently with the AlphaGo program \parencite{alphago}.
-We shortly introduce Go and compare it with chess where MCTS did not
-achieve success.
+%Go is an example of a game where MCTS has proven to be a good choice,
+%most recently with the AlphaGo program \parencite{alphago}.
+%We shortly introduce Go and compare it with chess where MCTS did not
+%achieve success.
 
-The basic rules of Go are simple. The
-standard board is a $9\times9$ (for beginners) or $19 \times 19$ grid.
-Two players, black and white, alternate in their moves, each
-placing a single stone of their color on an intersection of lines.
-By surrounding the stones of the opponent a player captures all the
-surrounded stones. The game ends when both players agree to end and the
-winner is the player with the greater sum of controlled territory and
-captured stones.
-The rules are well explained in detail at
-\href{http://playgo.to/iwtg/en/}{http://playgo.to/iwtg/en/}.
+%The basic rules of Go are simple. The
+%standard board is a $9\times9$ (for beginners) or $19 \times 19$ grid.
+%Two players, black and white, alternate in their moves, each
+%placing a single stone of their color on an intersection of lines.
+%By surrounding the stones of the opponent a player captures all the
+%surrounded stones. The game ends when both players agree to end and the
+%winner is the player with the greater sum of controlled territory and
+%captured stones.
+%The rules are well explained in detail at
+%\href{http://playgo.to/iwtg/en/}{http://playgo.to/iwtg/en/}.
 
-A Go player can observe that unlike in Chess there is seldom a quick way
-to lose, as a loss of a small part of territory may be reversed, however
-losing an important piece is hardly reversible.
-This gives us an important example of games where MCTS performs well (in
-Go it is worth exploring a plethora of moves) and where it does not
-(e.g., in Chess, due to the trap states described above).
-It seems plausible this
-generalizes well to territory versus piece based games.
+%A Go player can observe that unlike in Chess there is seldom a quick way
+%to lose, as a loss of a small part of territory may be reversed, however
+%losing an important piece is hardly reversible.
+%This gives us an important example of games where MCTS performs well (in
+%Go it is worth exploring a plethora of moves) and where it does not
+%(e.g., in Chess, due to the trap states described above).
+%It seems plausible this
+%generalizes well to territory versus piece based games.
 
-We end our detour to games with Arimaa, a game specifically designed in
-2002 to be easy for humans but hard for computers, for example by
-allowing more moves per turn. Eventually Arimaa players lost to a
-program in 2015 \parencite{arimaa}. The program uses techniques similar
-to chess programs like alpha-beta pruning and on top of that employs
-heuristics inspired by the best human players. See \parencite{jakl} for
-MCTS related insights into Arimaa.
+%We end our detour to games with Arimaa, a game specifically designed in
+%2002 to be easy for humans but hard for computers, for example by
+%allowing more moves per turn. Eventually Arimaa players lost to a
+%program in 2015 \parencite{arimaa}. The program uses techniques similar
+%to chess programs like alpha-beta pruning and on top of that employs
+%heuristics inspired by the best human players. See \parencite{jakl} for
+%MCTS related insights into Arimaa.

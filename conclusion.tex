@@ -13,13 +13,13 @@ We have observed the MAX-DIFF variant of BRTDP is a powerful
 heuristic which itself often balances well between exploration and
 exploitation in common MDP models.
 %Such behaviour was our goal when designing the MCTS based algorithm.
-Our MCTS-BRTDP algorithm performs only slightly worse on the PRISM
-benchmark suite while it performs significantly better on many models
-which are hard for BRTDP.  Even though value iteration does well on
-those hard-for-BRTDP models, it loses on the PRISM suite, making
-MCTS-BRTDP a universal choice for any MDP.
+Our MCTS based algorithms perform comparably on the PRISM
+benchmark suite, depending on the exact model and configuration.
+However, our methods perform significantly better on many models
+which are hard for BRTDP. Still, there are models where value iteration
+is the best choice.
 
-There is still a lot of work to be done in order to properly understand
+There remains a lot of work to be done in order to properly understand
 how MCTS based methods may be applied in MDP verification. A
 quantitative study of the algorithms' executions would help understand
 which parts

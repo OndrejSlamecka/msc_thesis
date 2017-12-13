@@ -1,13 +1,12 @@
 \chapter{Markov Decision Processes}
 \label{ch_mdp}
 
-At first, we look at Markov chains, a simpler type of
-probabilistic processes which do not offer choices to be made.
-Then we generalize to Markov Decision Processes.
-After that, we introduce the problem of {\em verification} (checking if a
-given MDP satisfies a given property), overview known solutions with
-a focus on value iteration and Bounded
-Real-Time Dynamic Programming which will be used in later chapters.
+At first, we look at Markov chains, a simpler type of probabilistic processes
+which do not offer choices to be made.  Then we generalize to Markov Decision
+Processes.  After that, we introduce the problem of {\em verification} (checking
+if a given MDP satisfies a given property), overview known solutions with a
+focus on value iteration and Bounded Real-Time Dynamic Programming (which will be
+used as a part of new algorithms in later chapters).
 
 It is assumed the reader is familiar with basic notions of probability
 theory, namely those of {\em probability space} and {\em probability measure}.
@@ -23,8 +22,8 @@ We refer the reader to
 
 \section{Markov Chains}
 
-Markov chain is a simpler formalism than
-Markov decision process and provides a good first intuition about
+Markov chains are a simpler formalism than
+Markov decision process and provide a good first intuition about
 probabilistic models. In a Markov chain, there are no decisions, only
 probabilities of transition.
 
@@ -220,6 +219,8 @@ an infinitely repeated cycle of states and actions. The parts of MDP
 where this happens are called end components.
 An example end component is shown in \autoref{fig:non-triv-ec}.
 
+\pagebreak
+
 \begin{definition}[End component]
 Let $\mathcal{M} = (S, s_0, A, E, \Delta)$ be an MDP,
 let $S' \subseteq S$ and $A' \subseteq \bigcup_{s' \in S'} E(s')$.
@@ -315,9 +316,8 @@ This thesis is concerned only with MDPs with complete information.
 a given property. {\em Model
 checking} is an approach to formal verification which uses a model of
 the system to verify the property.
-
 In our case, the systems are modeled as Markov decision processes and
-the properties are concerned about the maximum probability of reaching a
+the properties are about the maximum probability of reaching a
 state.
 
 To simplify notation, in this section we often refer to a fixed MDP $\mathcal{M} =
@@ -447,6 +447,8 @@ $F$. Further we fix $\epsilon$, an argument of the algorithm which sets
 the required precision (maximum allowed distance of the result of the
 algorithm from the correct value).
 
+\pagebreak
+
 Recall we have a unary value function defined
 and for use in the algorithm let us define the binary {\em value function}
 $V : S \times A \to [0,1]$ for all $s \in S$ and $a \in E(s)$ as follows
@@ -517,6 +519,8 @@ given $\epsilon$) far from each other.
 \end{algorithmic}
 \end{algorithm}
 
+\newpage
+
 \subsection*{BRTDP for MDPs with End Components}
 \autoref{alg:brtdp} is not guaranteed to converge
 when the MDP contains non-trivial end components.
@@ -577,6 +581,8 @@ end component. If there was a target state in the end component then the
 merged state is marked as a target state. If there was no target state and
 there is no outgoing action from the merged state then it is marked as a
 zero state.
+
+\pagebreak
 
 \subsection*{Variants of BRTDP}
 When BRTDP is in state $s$ and it has chosen action $a$,
