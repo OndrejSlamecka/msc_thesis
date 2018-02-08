@@ -400,9 +400,9 @@ methods explore the other branch and use it to update faster. However, they pay
 the cost of exploring a lot more states. MCTS-BRTDP-VCB-MAXDIFF performs worse
 than its UCB variant as opposed to the previous table.
 
-Measurements show that the only method which works on at least some of the
-composition-zeroconf models is value iteration (specifically with $K = 40$ the
-model has 141 thousand states and VI solves it, regardless of choice of $N$).
+Measurements show that only MCTS based methods solve at least half of
+composition-zeroconf configurations -- VI can solve only those with with
+$K = 40$ (regardless of choice of $N$) and BRTDP cannot solve any configuration.
 Other methods always run out of time.
 But on composition-wlan6 we observed that only MCTS based methods
 can actually solve the problem. MCTS-BRTDP-VCB-MAXDIFF needs just 2 seconds and
@@ -418,10 +418,11 @@ In \autoref{table:ucb_leader} we can see that with a careful choice of the UCB c
 MCTS-BRTDP-MD can, in fact, outperform BRTDP-MAXDIFF even though the first choice
 of the UCB constant in \autoref{table:general_comparison} suggested otherwise.
 
-In summary, MCTS based methods work well on several models (when the exploration
-constant is set properly), but there are models where VI and BRTDP are better.
-However, MCTS-BRTDP-MAXDIFF seems to work without timeouts (albeit possibly
-slowly) on many models, making it a kind of universal choice.
+In summary, MCTS based methods work well on several models (when the
+exploration constant is set properly), but there are models where VI and
+BRTDP are better.  However, MCTS-BRTDP-MAXDIFF seems to work (albeit it
+is not fastest) without timeouts in many situations where VI or BRTDP
+runs out of time, thus making it a universal, reliable choice.
 
 \begin{landscape}
 

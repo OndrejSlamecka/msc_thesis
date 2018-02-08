@@ -29,23 +29,19 @@ probabilities of transition.
 
 \begin{definition}
     Let $S$ be a finite set of states.
-    A sequence of random variables $(X_i : S \to \{0,1\})^{\infty}_{i=0}$
-    is called a {\em finite discrete-time time-homogeneous Markov chain},
+    A sequence of random variables $(X_i : \Omega \to S)^{\infty}_{i=0}$
+    is called a {\em finite discrete-time time-homogeneous Markov chain}
     if the probability of moving to a state is given only by the
-    current state, that is\footnote{The first condition ensures that
-    only the last state of ``history'' is considered, the second that
-    the length of the history does not matter either.}
-    $P(X_{k+1} = s_{k+1} \mid X_k = s_k) =
-    P(X_{k+1} = s_{k+1} \mid X_k = s_k, X_{k-1} = s_{k-1}, \ldots, X_{1} = s_{1})$
-    for every $s_k \in S$,
-    if the conditional probabilities are defined,
-    and
-    $P(X_{k+1} = s_{k+1} \mid X_k = s_k)
-    = P(X_{k} = s_{k} \mid X_{k-1} = s_{k-1})$.
+    current state, that is if
+    there exists a matrix $p$ such that for any $k$
+    \begin{align*}
+    P(X_{k+1} = s_{k+1} \mid X_k = s_k, X_{k-1} = s_{k-1}, \ldots, X_{1} = s_{1}) = \\
+    = P(X_{k+1} = s_{k+1} \mid X_k = s_k) = p_{s_{k},s_{k+1}}
+    \end{align*}
 \end{definition}
 
 In many applications it is natural to have an initial state
-$s$ ($X_1 = s$) and a chain can
+$s$ ($X_0 = s$) and a chain can
 then be drawn as a graph with probabilistic transitions. Note
 that the weights of the outgoing edges from a node sum to one, as the
 transition probabilities form a distribution on the set of states (for
@@ -91,9 +87,10 @@ simplicity we do not draw the transitions with zero probability).
 
 \begin{example} The Drunkard's Walk is a well-known example of a Markov
     chain. One can imagine a drunk person starting in the middle of a road
-    (state $s_0$) and then moving left or right at random. How many times
-    will the drunk visit the middle of the road? How many steps will it
-    take the drunk on average to reach a ditch ($s_{-2}, s_2$)?
+    (state $s_0$) and then moving left or right at random. To understand
+    Markov chains better the reader might want to calculate how many times
+    will the drunk visit the middle of the road or how many steps will
+    it take the drunk on average to reach a ditch ($s_{-2}, s_2$).
 
 \hfill \break
 \centering
@@ -148,7 +145,7 @@ actions could just be renamed.
     The MDP $(\{s_0, s_1, s_2\}, s_0, \{a, b\}, E, \Delta)$,
     where
     $E(s_0) =$ \linebreak $\{a,b\}$,
-    $E(s_1) \{c\}, E(s_2) = \{d\}$,
+    $E(s_1) = \{c\}, E(s_2) = \{d\}$,
     and $\Delta(s_0, a) = \{(s_1, 1)\}$,
     $\Delta(s_0, b) = \{(s_1, 0.5),$ $(s_2,0.25), (s_0,0.25)\}$,
     $\Delta(s_1,c) = \{(s_1,1)\},
@@ -214,10 +211,11 @@ then $(S, s_0, A,E,\Delta,R)$ is a {\em Markov decision process with rewards}.
     $FPaths$.
 \end{definition}
 
-When following a path one wants to avoid getting stuck in
-an infinitely repeated cycle of states and actions. The parts of MDP
-where this happens are called end components.
-An example end component is shown in \autoref{fig:non-triv-ec}.
+
+When following a path one might get stuck in an infinitely repeated
+cycle of states and actions. The parts of MDP where this can happen are
+called end components.  An example end component is shown in
+\autoref{fig:non-triv-ec}.
 
 \pagebreak
 
@@ -351,7 +349,7 @@ a clear stopping criterion as opposed to value iteration, however, in
 practice, it does not perform better \parencite{forejt}.
 
 Another approach we do not explain is formulating the problem as a system
-linear equations and solving it. The solution is precise and has
+of linear equations and solving it. The solution is precise and has
 guaranteed correctness, but the computation quickly becomes expensive as
 the model grows in size.  See \parencite{forejt} for a description of
 this method.
@@ -489,10 +487,10 @@ given $\epsilon$) far from each other.
 \caption{BRTDP for MDPs without end components}
 \label{alg:brtdp}
 \begin{algorithmic}[1]
-\State $U(s,a) \gets 1, L(s,a) \gets 1 \; \forall s \in S, a \in E(s)$
+\State $U(s,a) \gets 1, L(s,a) \gets 0 \; \forall s \in S, a \in E(s)$
 \State $U(0,a) \gets 0, L(1,a) \gets 1 \; \forall a \in A$
 \State $\omega \gets s_0$
-\While{$U(s_0) - L(s_0) < \epsilon$ }
+\While{$U(s_0) - L(s_0) > \epsilon$ }
     % simulation
     \State \# Simulation Phase
     \While{$last(\omega) \not \in \{0,1\}$}
@@ -527,7 +525,7 @@ when the MDP contains non-trivial end components.
 
 \begin{example}
     Below is an MDP with an end component
-    $(\{s_0, s_1\}, \{a,c\})$, and let $F = \{s_2\}$.
+    $(\{s_0, s_1\}, \{a,c\})$. Let $F = \{s_2\}$.
     When BRTDP updates state $s_0$ or $s_1$ there is always a state (the
     other one in the EC) which has upper bound 1. This way the upper
     bound remains 1 after every iteration, even though the lower bound
